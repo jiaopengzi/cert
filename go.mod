@@ -54,5 +54,3 @@ require (
 	google.golang.org/protobuf v1.36.11 // indirect
 	gorm.io/gorm v1.31.1 // indirect
 )
-
-replace github.com/jiaopengzi/go-utils => ../go-utils
