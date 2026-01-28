@@ -99,10 +99,10 @@ func GenRootCACmd() *cli.Command {
 		Action: func(ctx context.Context, cmd *cli.Command) error {
 			cfg := &cert.CACertConfig{
 				KeyAlgorithm: cert.KeyAlgorithm(cmd.String("algorithm")),
-				RSAKeyBits:   cmd.Int("rsa-bits"),
+				RSAKeyBits:   int(cmd.Int("rsa-bits")),
 				ECDSACurve:   cert.ECDSACurve(cmd.String("ecdsa-curve")),
-				DaysValid:    cmd.Int("days"),
-				MaxPathLen:   cmd.Int("max-path-len"),
+				DaysValid:    int(cmd.Int("days")),
+				MaxPathLen:   int(cmd.Int("max-path-len")),
 				PathLenZero:  cmd.Bool("path-len-zero"),
 				Subject: cert.Subject{
 					CommonName:   cmd.String("cn"),

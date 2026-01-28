@@ -72,7 +72,7 @@ func webCmd() *ucli.Command {
 			},
 		},
 		Action: func(ctx context.Context, cmd *ucli.Command) error {
-			port := cmd.Int("port")
+			port := int(cmd.Int("port"))
 			host := cmd.String("host")
 			staticDir := cmd.String("static")
 
