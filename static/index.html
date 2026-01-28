@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>证书工具 - Certificate Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .version {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .tabs {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .tab-btn.active {
+            background: white;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .tab-content {
+            display: none;
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .label-hint {
+            font-weight: normal;
+            color: #666;
+            font-size: 12px;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            min-height: 120px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            resize: vertical;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #d0d0d0;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .result.success {
+            display: block;
+            background: #e8f5e9;
+            border: 2px solid #4caf50;
+        }
+
+        .result.error {
+            display: block;
+            background: #ffebee;
+            border: 2px solid #f44336;
+        }
+
+        .result h4 {
+            margin-bottom: 10px;
+        }
+
+        .result pre {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .copy-btn {
+            padding: 6px 12px;
+            font-size: 12px;
+            margin-left: 10px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .copy-btn:hover {
+            background: #5a6fd6;
+        }
+
+        .section-title {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .help-text {
+            font-size: 12px;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        @media (max-width: 768px) {
+            .tabs {
+                flex-direction: column;
+            }
+
+            .tab-btn {
+                width: 100%;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🔐 证书工具 / Certificate Tool</h1>
+        <div class="version" id="version">Loading version...</div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="showTab('genrootca')">生成根证书<br>Gen Root CA</button>
+            <button class="tab-btn" onclick="showTab('signcert')">签发证书<br>Sign Cert</button>
+            <button class="tab-btn" onclick="showTab('sign')">数据签名<br>Sign Data</button>
+            <button class="tab-btn" onclick="showTab('verify')">验证签名<br>Verify</button>
+            <button class="tab-btn" onclick="showTab('encrypt')">加密<br>Encrypt</button>
+            <button class="tab-btn" onclick="showTab('decrypt')">解密<br>Decrypt</button>
+            <button class="tab-btn" onclick="showTab('validatechain')">验证证书链<br>Validate Chain</button>
+        </div>
+
+        <!-- 生成根证书 -->
+        <div id="genrootca" class="tab-content active">
+            <h3 class="section-title">生成根证书 / Generate Root CA</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>密钥算法 / Algorithm</label>
+                    <select id="grc-algorithm">
+                        <option value="RSA">RSA</option>
+                        <option value="ECDSA">ECDSA</option>
+                        <option value="Ed25519">Ed25519</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>RSA 位数 / RSA Bits</label>
+                    <select id="grc-rsabits">
+                        <option value="2048">2048</option>
+                        <option value="4096">4096</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>ECDSA 曲线 / ECDSA Curve</label>
+                    <select id="grc-ecdsacurve">
+                        <option value="P256">P256</option>
+                        <option value="P384">P384</option>
+                        <option value="P521">P521</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>有效期(天) / Valid Days</label>
+                    <input type="number" id="grc-days" value="3650">
+                </div>
+                <div class="form-group">
+                    <label>通用名称 / Common Name</label>
+                    <input type="text" id="grc-cn" value="Root CA">
+                </div>
+                <div class="form-group">
+                    <label>组织 / Organization</label>
+                    <input type="text" id="grc-org" placeholder="Optional">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>国家 / Country</label>
+                    <input type="text" id="grc-country" placeholder="CN">
+                </div>
+                <div class="form-group">
+                    <label>省份 / State</label>
+                    <input type="text" id="grc-state" placeholder="Optional">
+                </div>
+                <div class="form-group">
+                    <label>城市 / Locality</label>
+                    <input type="text" id="grc-locality" placeholder="Optional">
+                </div>
+            </div>
+            <div class="form-group">
+                <button class="btn btn-primary" onclick="genRootCA()">生成 / Generate</button>
+            </div>
+            <div id="grc-result" class="result"></div>
+        </div>
+
+        <!-- 签发证书 -->
+        <div id="signcert" class="tab-content">
+            <h3 class="section-title">签发证书 / Sign Certificate</h3>
+            <div class="form-group">
+                <label>CA 证书 / CA Certificate <span class="label-hint">(PEM 格式)</span></label>
+                <textarea id="sc-cacert" placeholder="-----BEGIN CERTIFICATE-----..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>CA 私钥 / CA Private Key <span class="label-hint">(PEM 格式)</span></label>
+                <textarea id="sc-cakey" placeholder="-----BEGIN PRIVATE KEY-----..."></textarea>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>密钥算法 / Algorithm</label>
+                    <select id="sc-algorithm">
+                        <option value="RSA">RSA</option>
+                        <option value="ECDSA">ECDSA</option>
+                        <option value="Ed25519">Ed25519</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>RSA 位数 / RSA Bits</label>
+                    <select id="sc-rsabits">
+                        <option value="2048">2048</option>
+                        <option value="4096">4096</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>有效期(天) / Valid Days</label>
+                    <input type="number" id="sc-days" value="365">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>通用名称 / Common Name</label>
+                    <input type="text" id="sc-cn" value="localhost">
+                </div>
+                <div class="form-group">
+                    <label>组织 / Organization</label>
+                    <input type="text" id="sc-org" placeholder="Optional">
+                </div>
+                <div class="form-group">
+                    <label>用途 / Usage</label>
+                    <select id="sc-usage">
+                        <option value="server">服务器认证 / Server</option>
+                        <option value="client">客户端认证 / Client</option>
+                        <option value="codesigning">代码签名 / Code Signing</option>
+                        <option value="email">邮件保护 / Email</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>DNS 名称 / DNS Names <span class="label-hint">(逗号分隔)</span></label>
+                    <input type="text" id="sc-dnsnames" placeholder="example.com,www.example.com">
+                </div>
+                <div class="form-group">
+                    <label>IP 地址 / IP Addresses <span class="label-hint">(逗号分隔)</span></label>
+                    <input type="text" id="sc-ipaddrs" placeholder="192.168.1.1,10.0.0.1">
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="sc-isca">
+                    <label for="sc-isca">生成中间 CA / Generate Intermediate CA</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <button class="btn btn-primary" onclick="signCert()">签发 / Sign</button>
+            </div>
+            <div id="sc-result" class="result"></div>
+        </div>
+
+        <!-- 数据签名 -->
+        <div id="sign" class="tab-content">
+            <h3 class="section-title">数据签名 / Sign Data</h3>
+            <div class="form-group">
+                <label>私钥 / Private Key <span class="label-hint">(PEM 格式)</span></label>
+                <textarea id="sign-key" placeholder="-----BEGIN PRIVATE KEY-----..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>待签名数据 / Data to Sign</label>
+                <textarea id="sign-data" placeholder="Enter data to sign..."></textarea>
+            </div>
+            <div class="form-group">
+                <button class="btn btn-primary" onclick="signData()">签名 / Sign</button>
+            </div>
+            <div id="sign-result" class="result"></div>
+        </div>
+
+        <!-- 验证签名 -->
+        <div id="verify" class="tab-content">
+            <h3 class="section-title">验证签名 / Verify Signature</h3>
+            <div class="form-group">
+                <label>证书 / Certificate <span class="label-hint">(PEM 格式)</span></label>
+                <textarea id="verify-cert" placeholder="-----BEGIN CERTIFICATE-----..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>原始数据 / Original Data</label>
+                <textarea id="verify-data" placeholder="Original data..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>签名 / Signature <span class="label-hint">(Base64 编码)</span></label>
+                <textarea id="verify-signature" placeholder="Base64 encoded signature..."></textarea>
+            </div>
+            <div class="form-group">
+                <button class="btn btn-primary" onclick="verifySignature()">验证 / Verify</button>
+            </div>
+            <div id="verify-result" class="result"></div>
+        </div>
+
+        <!-- 加密 -->
+        <div id="encrypt" class="tab-content">
+            <h3 class="section-title">加密 / Encrypt</h3>
+            <div class="form-group">
+                <label>证书 / Certificate <span class="label-hint">(PEM 格式)</span></label>
+                <textarea id="encrypt-cert" placeholder="-----BEGIN CERTIFICATE-----..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>明文 / Plaintext</label>
+                <textarea id="encrypt-data" placeholder="Enter plaintext to encrypt..."></textarea>
+            </div>
+            <div class="form-group">
+                <button class="btn btn-primary" onclick="encryptData()">加密 / Encrypt</button>
+            </div>
+            <div id="encrypt-result" class="result"></div>
+        </div>
+
+        <!-- 解密 -->
+        <div id="decrypt" class="tab-content">
+            <h3 class="section-title">解密 / Decrypt</h3>
+            <div class="form-group">
+                <label>证书 / Certificate <span class="label-hint">(PEM 格式)</span></label>
+                <textarea id="decrypt-cert" placeholder="-----BEGIN CERTIFICATE-----..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>私钥 / Private Key <span class="label-hint">(PEM 格式)</span></label>
+                <textarea id="decrypt-key" placeholder="-----BEGIN PRIVATE KEY-----..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>密文 / Ciphertext <span class="label-hint">(Base64 编码)</span></label>
+                <textarea id="decrypt-data" placeholder="Base64 encoded ciphertext..."></textarea>
+            </div>
+            <div class="form-group">
+                <button class="btn btn-primary" onclick="decryptData()">解密 / Decrypt</button>
+            </div>
+            <div id="decrypt-result" class="result"></div>
+        </div>
+
+        <!-- 验证证书链 -->
+        <div id="validatechain" class="tab-content">
+            <h3 class="section-title">验证证书链 / Validate Certificate Chain</h3>
+            <div class="form-group">
+                <label>CA 证书 / CA Certificate <span class="label-hint">(PEM 格式)</span></label>
+                <textarea id="vc-cacert" placeholder="-----BEGIN CERTIFICATE-----..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>待验证证书 / Certificate to Validate <span class="label-hint">(PEM 格式)</span></label>
+                <textarea id="vc-cert" placeholder="-----BEGIN CERTIFICATE-----..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>中间 CA 证书 / Intermediate CAs <span class="label-hint">(PEM 格式，可选)</span></label>
+                <textarea id="vc-intermediate" placeholder="-----BEGIN CERTIFICATE-----..."></textarea>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>DNS 名称 / DNS Name <span class="label-hint">(可选)</span></label>
+                    <input type="text" id="vc-dnsname" placeholder="example.com">
+                </div>
+                <div class="form-group">
+                    <label>用途 / Usage <span class="label-hint">(可选)</span></label>
+                    <select id="vc-usage">
+                        <option value="">不验证 / Don't verify</option>
+                        <option value="server">服务器认证 / Server</option>
+                        <option value="client">客户端认证 / Client</option>
+                        <option value="codesigning">代码签名 / Code Signing</option>
+                        <option value="email">邮件保护 / Email</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <button class="btn btn-primary" onclick="validateChain()">验证 / Validate</button>
+            </div>
+            <div id="vc-result" class="result"></div>
+        </div>
+    </div>
+
+    <script>
+        // 加载版本
+        fetch('/api/version')
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('version').textContent = 'Version: ' + data.data.version;
+                }
+            })
+            .catch(() => {
+                document.getElementById('version').textContent = 'Version: unknown';
+            });
+
+        // Tab 切换
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.getElementById(tabId).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // 显示结果
+        function showResult(elementId, success, content) {
+            const el = document.getElementById(elementId);
+            el.className = 'result ' + (success ? 'success' : 'error');
+            el.innerHTML = content;
+        }
+
+        // 复制到剪贴板
+        function copyToClipboard(text, btnEl) {
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = btnEl.textContent;
+                btnEl.textContent = '已复制!';
+                setTimeout(() => {
+                    btnEl.textContent = originalText;
+                }, 1500);
+            });
+        }
+
+        // 生成根证书
+        async function genRootCA() {
+            const data = {
+                algorithm: document.getElementById('grc-algorithm').value,
+                rsaBits: parseInt(document.getElementById('grc-rsabits').value),
+                ecdsaCurve: document.getElementById('grc-ecdsacurve').value,
+                days: parseInt(document.getElementById('grc-days').value),
+                commonName: document.getElementById('grc-cn').value,
+                org: document.getElementById('grc-org').value,
+                country: document.getElementById('grc-country').value,
+                state: document.getElementById('grc-state').value,
+                locality: document.getElementById('grc-locality').value
+            };
+
+            try {
+                const res = await fetch('/api/genrootca', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+
+                if (result.success) {
+                    showResult('grc-result', true, `
+                        <h4>✅ ${result.message}</h4>
+                        <p><strong>证书 / Certificate:</strong> <button class="copy-btn" onclick="copyToClipboard(\`${result.data.cert.replace(/`/g, '\\`')}\`, this)">复制</button></p>
+                        <pre>${result.data.cert}</pre>
+                        <p><strong>私钥 / Private Key:</strong> <button class="copy-btn" onclick="copyToClipboard(\`${result.data.key.replace(/`/g, '\\`')}\`, this)">复制</button></p>
+                        <pre>${result.data.key}</pre>
+                    `);
+                } else {
+                    showResult('grc-result', false, `<h4>❌ Error</h4><p>${result.error}</p>`);
+                }
+            } catch (e) {
+                showResult('grc-result', false, `<h4>❌ Error</h4><p>${e.message}</p>`);
+            }
+        }
+
+        // 签发证书
+        async function signCert() {
+            const data = {
+                caCert: document.getElementById('sc-cacert').value,
+                caKey: document.getElementById('sc-cakey').value,
+                algorithm: document.getElementById('sc-algorithm').value,
+                rsaBits: parseInt(document.getElementById('sc-rsabits').value),
+                days: parseInt(document.getElementById('sc-days').value),
+                commonName: document.getElementById('sc-cn').value,
+                org: document.getElementById('sc-org').value,
+                dnsNames: document.getElementById('sc-dnsnames').value,
+                ipAddrs: document.getElementById('sc-ipaddrs').value,
+                usage: document.getElementById('sc-usage').value,
+                isCA: document.getElementById('sc-isca').checked
+            };
+
+            try {
+                const res = await fetch('/api/signcert', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+
+                if (result.success) {
+                    showResult('sc-result', true, `
+                        <h4>✅ ${result.message}</h4>
+                        <p><strong>证书 / Certificate:</strong> <button class="copy-btn" onclick="copyToClipboard(\`${result.data.cert.replace(/`/g, '\\`')}\`, this)">复制</button></p>
+                        <pre>${result.data.cert}</pre>
+                        <p><strong>私钥 / Private Key:</strong> <button class="copy-btn" onclick="copyToClipboard(\`${result.data.key.replace(/`/g, '\\`')}\`, this)">复制</button></p>
+                        <pre>${result.data.key}</pre>
+                    `);
+                } else {
+                    showResult('sc-result', false, `<h4>❌ Error</h4><p>${result.error}</p>`);
+                }
+            } catch (e) {
+                showResult('sc-result', false, `<h4>❌ Error</h4><p>${e.message}</p>`);
+            }
+        }
+
+        // 数据签名
+        async function signData() {
+            const data = {
+                key: document.getElementById('sign-key').value,
+                data: document.getElementById('sign-data').value
+            };
+
+            try {
+                const res = await fetch('/api/sign', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+
+                if (result.success) {
+                    showResult('sign-result', true, `
+                        <h4>✅ ${result.message}</h4>
+                        <p><strong>签名 / Signature (Base64):</strong> <button class="copy-btn" onclick="copyToClipboard('${result.data.signature}', this)">复制</button></p>
+                        <pre>${result.data.signature}</pre>
+                    `);
+                } else {
+                    showResult('sign-result', false, `<h4>❌ Error</h4><p>${result.error}</p>`);
+                }
+            } catch (e) {
+                showResult('sign-result', false, `<h4>❌ Error</h4><p>${e.message}</p>`);
+            }
+        }
+
+        // 验证签名
+        async function verifySignature() {
+            const data = {
+                cert: document.getElementById('verify-cert').value,
+                data: document.getElementById('verify-data').value,
+                signature: document.getElementById('verify-signature').value
+            };
+
+            try {
+                const res = await fetch('/api/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+
+                if (result.success && result.data.valid) {
+                    showResult('verify-result', true, `<h4>✅ 签名验证通过 / Signature Valid</h4>`);
+                } else if (result.success && !result.data.valid) {
+                    showResult('verify-result', false, `<h4>❌ 签名验证失败 / Signature Invalid</h4><p>${result.data.reason}</p>`);
+                } else {
+                    showResult('verify-result', false, `<h4>❌ Error</h4><p>${result.error}</p>`);
+                }
+            } catch (e) {
+                showResult('verify-result', false, `<h4>❌ Error</h4><p>${e.message}</p>`);
+            }
+        }
+
+        // 加密
+        async function encryptData() {
+            const data = {
+                cert: document.getElementById('encrypt-cert').value,
+                data: document.getElementById('encrypt-data').value
+            };
+
+            try {
+                const res = await fetch('/api/encrypt', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+
+                if (result.success) {
+                    showResult('encrypt-result', true, `
+                        <h4>✅ ${result.message}</h4>
+                        <p><strong>密文 / Ciphertext (Base64):</strong> <button class="copy-btn" onclick="copyToClipboard('${result.data.ciphertext}', this)">复制</button></p>
+                        <pre>${result.data.ciphertext}</pre>
+                    `);
+                } else {
+                    showResult('encrypt-result', false, `<h4>❌ Error</h4><p>${result.error}</p>`);
+                }
+            } catch (e) {
+                showResult('encrypt-result', false, `<h4>❌ Error</h4><p>${e.message}</p>`);
+            }
+        }
+
+        // 解密
+        async function decryptData() {
+            const data = {
+                cert: document.getElementById('decrypt-cert').value,
+                key: document.getElementById('decrypt-key').value,
+                data: document.getElementById('decrypt-data').value
+            };
+
+            try {
+                const res = await fetch('/api/decrypt', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+
+                if (result.success) {
+                    showResult('decrypt-result', true, `
+                        <h4>✅ ${result.message}</h4>
+                        <p><strong>明文 / Plaintext:</strong></p>
+                        <pre>${result.data.plaintext}</pre>
+                    `);
+                } else {
+                    showResult('decrypt-result', false, `<h4>❌ Error</h4><p>${result.error}</p>`);
+                }
+            } catch (e) {
+                showResult('decrypt-result', false, `<h4>❌ Error</h4><p>${e.message}</p>`);
+            }
+        }
+
+        // 验证证书链
+        async function validateChain() {
+            const intermediate = document.getElementById('vc-intermediate').value;
+            const data = {
+                caCert: document.getElementById('vc-cacert').value,
+                cert: document.getElementById('vc-cert').value,
+                intermediateCAs: intermediate ? [intermediate] : [],
+                dnsName: document.getElementById('vc-dnsname').value,
+                usage: document.getElementById('vc-usage').value
+            };
+
+            try {
+                const res = await fetch('/api/validatechain', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+
+                if (result.success && result.data.valid) {
+                    showResult('vc-result', true, `<h4>✅ 证书链验证通过 / Certificate Chain Valid</h4>`);
+                } else if (result.success && !result.data.valid) {
+                    showResult('vc-result', false, `<h4>❌ 证书链验证失败 / Certificate Chain Invalid</h4><p>${result.data.reason}</p>`);
+                } else {
+                    showResult('vc-result', false, `<h4>❌ Error</h4><p>${result.error}</p>`);
+                }
+            } catch (e) {
+                showResult('vc-result', false, `<h4>❌ Error</h4><p>${e.message}</p>`);
+            }
+        }
+    </script>
+</body>
+
+</html>

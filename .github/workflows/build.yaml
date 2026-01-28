@@ -1,0 +1,99 @@
+# FilePath    : cert\.github\workflows\build.yaml
+# Author      : jiaopengzi
+# Blog        : https://jiaopengzi.com
+# Copyright   : Copyright (c) 2026 by jiaopengzi, All Rights Reserved.
+# Description : GitHub Actions 工作流文件，用于构建和发布 Cert 项目。
+
+name: Build Cert
+
+on:
+  push:
+    # 仅当 tag 以小写 v 开头时触发
+    tags:
+      - "v*"
+  # 手动触发，可选择指定发布的 tag
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Tag name to release (optional when manually triggering)"
+        required: false
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  # 限制并发构建，防止同时构建多个
+  cancel-in-progress: true
+
+jobs:
+  build:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Prepare system
+        run: |
+          sudo apt update
+          sudo apt install -y curl git make zip unzip ca-certificates procps iproute2
+
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Read Go version from go.mod
+        id: read_go
+        run: |
+          GOV=$(grep '^go ' go.mod | awk '{print $2}' || true)
+          if [ -z "$GOV" ]; then
+            echo "No go version found in go.mod; defaulting to 1.25.6"
+            GOV=1.25.6
+          fi
+          echo "GOV=$GOV" >> $GITHUB_ENV
+
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: ${{ env.GOV }}
+
+      - name: Install dependencies
+        run: |
+          go mod tidy
+          go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+
+      - name: Build all (make all)
+        run: |
+          make all
+
+      - name: Package artifacts
+        run: |
+          mkdir -p dist
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            TAG=${GITHUB_REF#refs/tags/}
+          else
+            TAG=${GITHUB_REF##*/}
+          fi
+          SAFE_TAG=$(echo "$TAG" | tr '/' '-' | tr ' ' '-')
+
+          # 打包 Windows (包含二进制和 static 目录)
+          if [ -d ./bin/windows ]; then
+            (cd bin/windows && zip -r "../../dist/${SAFE_TAG}-windows.zip" .) || true
+          fi
+
+          # 打包 Linux (包含二进制和 static 目录)
+          if [ -d ./bin/linux ]; then
+            (cd bin/linux && zip -r "../../dist/${SAFE_TAG}-linux.zip" .) || true
+          fi
+
+          # 打包 macOS (包含二进制和 static 目录)
+          if [ -d ./bin/macos ]; then
+            (cd bin/macos && zip -r "../../dist/${SAFE_TAG}-macos.zip" .) || true
+          fi
+
+      - name: Create release and upload assets
+        if: startsWith(github.ref, 'refs/tags/') || (github.event_name == 'workflow_dispatch' && github.event.inputs.release_tag != '')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/*.zip
+          tag_name: ${{ github.event.inputs.release_tag != '' && github.event.inputs.release_tag || github.ref_name }}
+          overwrite_files: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
