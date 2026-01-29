@@ -47,6 +47,7 @@
         "LASTEXITCODE",
         "ldflags",
         "PKCS",
+        "preldhash",
         "procps",
         "Roboto",
         "rsabits",

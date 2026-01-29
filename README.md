@@ -19,23 +19,35 @@
 
 ## 安装
 
-### 方式一：Go Install
+### 方式一：下载预编译二进制（推荐）
+
+从 [Releases](https://github.com/jiaopengzi/cert/releases) 页面下载对应平台的二进制文件。
+
+> 预编译版本包含完整的版本信息（Version、Commit、BuildTime）。
+
+### 方式二：Go Install
 
 ```bash
 go install github.com/jiaopengzi/cert/cmd/cert@latest
 ```
 
-### 方式二：下载预编译二进制
+> 此方式安装的版本号来自 Go 模块版本（如 v0.2.0），Commit 和 BuildTime 来自 VCS 信息。
 
-从 [Releases](https://github.com/jiaopengzi/cert/releases) 页面下载对应平台的二进制文件。
-
-### 方式三：源码编译
+### 方式三：源码编译（完整版本信息）
 
 ```bash
 git clone https://github.com/jiaopengzi/cert.git
 cd cert
-go build -o cert ./cmd/cert
+
+# Windows (PowerShell)
+.\run.ps1
+# 选择 2 - 构建 Windows 二进制
+
+# Linux/macOS
+make build-linux   # 或 build-macos
 ```
+
+> 通过 Makefile/run.ps1 编译会自动注入 Git Tag、Commit Hash 和构建时间。
 
 ## 快速开始
 
