@@ -25,6 +25,7 @@
     "cSpell.words": [
         "addrs",
         "cakey",
+        "dnsname",
         "genrootca",
         "GOARCH",
         "golangci",
