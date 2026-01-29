@@ -5,6 +5,9 @@
 
 一个简单易用的证书管理工具，支持 CLI 命令行和 Web 界面两种操作方式。
 
+<img width="600" alt="image" src="https://github.com/user-attachments/assets/8755c0a4-0e0c-40d4-a47c-cbfce47ad518" />
+
+
 ## 功能特性
 
 - **生成根证书** - 支持 RSA、ECDSA、Ed25519 三种算法
