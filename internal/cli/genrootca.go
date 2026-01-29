@@ -13,7 +13,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/jiaopengzi/go-utils/cert"
+	"github.com/jiaopengzi/cert/core"
 	"github.com/urfave/cli/v3"
 )
 
@@ -97,14 +97,14 @@ func GenRootCACmd() *cli.Command {
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			cfg := &cert.CACertConfig{
-				KeyAlgorithm: cert.KeyAlgorithm(cmd.String("algorithm")),
+			cfg := &core.CACertConfig{
+				KeyAlgorithm: core.KeyAlgorithm(cmd.String("algorithm")),
 				RSAKeyBits:   int(cmd.Int("rsa-bits")),
-				ECDSACurve:   cert.ECDSACurve(cmd.String("ecdsa-curve")),
+				ECDSACurve:   core.ECDSACurve(cmd.String("ecdsa-curve")),
 				DaysValid:    int(cmd.Int("days")),
 				MaxPathLen:   int(cmd.Int("max-path-len")),
 				PathLenZero:  cmd.Bool("path-len-zero"),
-				Subject: cert.Subject{
+				Subject: core.Subject{
 					CommonName:   cmd.String("cn"),
 					Organization: cmd.String("org"),
 					Country:      cmd.String("country"),
@@ -113,7 +113,7 @@ func GenRootCACmd() *cli.Command {
 				},
 			}
 
-			if err := cert.GenCACert(cfg); err != nil {
+			if err := core.GenCACert(cfg); err != nil {
 				return fmt.Errorf("generate root CA failed (生成根证书失败: %w)", err)
 			}
 

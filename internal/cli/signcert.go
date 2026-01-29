@@ -1,5 +1,5 @@
 //
-// FilePath    : cert\internal\cli\signcert.go
+// FilePath    : cert\internal\cli\signcore.go
 // Author      : jiaopengzi
 // Blog        : https://jiaopengzi.com
 // Copyright   : Copyright (c) 2026 by jiaopengzi, All Rights Reserved.
@@ -13,7 +13,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/jiaopengzi/go-utils/cert"
+	"github.com/jiaopengzi/cert/core"
 	"github.com/urfave/cli/v3"
 )
 
@@ -39,7 +39,7 @@ func SignCertCmd() *cli.Command {
 			&cli.StringFlag{
 				Name:    "cert-out",
 				Aliases: []string{"c"},
-				Value:   "cert.pem",
+				Value:   "core.pem",
 				Usage:   "Output path for signed certificate (签发证书输出路径)",
 			},
 			&cli.StringFlag{
@@ -119,29 +119,29 @@ func SignCertCmd() *cli.Command {
 				return fmt.Errorf("read CA private key failed (读取 CA 私钥失败: %w)", err)
 			}
 
-			sanConfig := cert.ParseSANFromStr(cmd.String("dns-names"), cmd.String("ip-addrs"))
+			sanConfig := core.ParseSANFromStr(cmd.String("dns-names"), cmd.String("ip-addrs"))
 
 			usage := parseUsage(cmd.String("usage"))
 
-			cfg := &cert.CASignedCertConfig{
+			cfg := &core.CASignedCertConfig{
 				CACert:       string(caCert),
 				CAKey:        string(caKey),
 				Name:         cmd.String("cn"),
-				KeyAlgorithm: cert.KeyAlgorithm(cmd.String("algorithm")),
+				KeyAlgorithm: core.KeyAlgorithm(cmd.String("algorithm")),
 				RSAKeyBits:   int(cmd.Int("rsa-bits")),
-				ECDSACurve:   cert.ECDSACurve(cmd.String("ecdsa-curve")),
+				ECDSACurve:   core.ECDSACurve(cmd.String("ecdsa-curve")),
 				DaysValid:    int(cmd.Int("days")),
 				SAN:          sanConfig,
 				Usage:        usage,
 				IsCA:         cmd.Bool("is-ca"),
-				Subject: cert.Subject{
+				Subject: core.Subject{
 					CommonName:   cmd.String("cn"),
 					Organization: cmd.String("org"),
 					Country:      cmd.String("country"),
 				},
 			}
 
-			if err := cert.GenerateCASignedCert(cfg); err != nil {
+			if err := core.GenerateCASignedCert(cfg); err != nil {
 				return fmt.Errorf("sign certificate failed (签发证书失败: %w)", err)
 			}
 
@@ -165,17 +165,17 @@ func SignCertCmd() *cli.Command {
 	}
 }
 
-func parseUsage(usage string) cert.CertUsage {
+func parseUsage(usage string) core.CertUsage {
 	switch usage {
 	case "server":
-		return cert.UsageServer
+		return core.UsageServer
 	case "client":
-		return cert.UsageClient
+		return core.UsageClient
 	case "codesigning":
-		return cert.UsageCodeSigning
+		return core.UsageCodeSigning
 	case "email":
-		return cert.UsageEmailProtection
+		return core.UsageEmailProtection
 	default:
-		return cert.UsageServer
+		return core.UsageServer
 	}
 }

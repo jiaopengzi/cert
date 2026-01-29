@@ -15,7 +15,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/jiaopengzi/go-utils/cert"
+	"github.com/jiaopengzi/cert/core"
 )
 
 // Response 通用响应结构
@@ -107,14 +107,14 @@ func GenRootCAHandler(w http.ResponseWriter, r *http.Request) {
 		req.MaxPathLen = -1
 	}
 
-	cfg := &cert.CACertConfig{
-		KeyAlgorithm: cert.KeyAlgorithm(req.Algorithm),
+	cfg := &core.CACertConfig{
+		KeyAlgorithm: core.KeyAlgorithm(req.Algorithm),
 		RSAKeyBits:   req.RSABits,
-		ECDSACurve:   cert.ECDSACurve(req.ECDSACurve),
+		ECDSACurve:   core.ECDSACurve(req.ECDSACurve),
 		DaysValid:    req.Days,
 		MaxPathLen:   req.MaxPathLen,
 		PathLenZero:  req.PathLenZero,
-		Subject: cert.Subject{
+		Subject: core.Subject{
 			CommonName:   req.CommonName,
 			Organization: req.Org,
 			Country:      req.Country,
@@ -123,7 +123,7 @@ func GenRootCAHandler(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 
-	if err := cert.GenCACert(cfg); err != nil {
+	if err := core.GenCACert(cfg); err != nil {
 		writeJSON(w, http.StatusInternalServerError, Response{
 			Success: false,
 			Error:   "Generate root CA failed (生成根证书失败: )" + err.Error(),
@@ -205,28 +205,28 @@ func SignCertHandler(w http.ResponseWriter, r *http.Request) {
 		req.Usage = "server"
 	}
 
-	sanConfig := cert.ParseSANFromStr(req.DNSNames, req.IPAddrs)
+	sanConfig := core.ParseSANFromStr(req.DNSNames, req.IPAddrs)
 	usage := parseUsage(req.Usage)
 
-	cfg := &cert.CASignedCertConfig{
+	cfg := &core.CASignedCertConfig{
 		CACert:       req.CACert,
 		CAKey:        req.CAKey,
 		Name:         req.CommonName,
-		KeyAlgorithm: cert.KeyAlgorithm(req.Algorithm),
+		KeyAlgorithm: core.KeyAlgorithm(req.Algorithm),
 		RSAKeyBits:   req.RSABits,
-		ECDSACurve:   cert.ECDSACurve(req.ECDSACurve),
+		ECDSACurve:   core.ECDSACurve(req.ECDSACurve),
 		DaysValid:    req.Days,
 		SAN:          sanConfig,
 		Usage:        usage,
 		IsCA:         req.IsCA,
-		Subject: cert.Subject{
+		Subject: core.Subject{
 			CommonName:   req.CommonName,
 			Organization: req.Org,
 			Country:      req.Country,
 		},
 	}
 
-	if err := cert.GenerateCASignedCert(cfg); err != nil {
+	if err := core.GenerateCASignedCert(cfg); err != nil {
 		writeJSON(w, http.StatusInternalServerError, Response{
 			Success: false,
 			Error:   "Sign certificate failed (签发证书失败: )" + err.Error(),
@@ -272,7 +272,7 @@ func SignHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	signature, err := cert.SignData(req.Key, []byte(req.Data))
+	signature, err := core.SignData(req.Key, []byte(req.Data))
 	if err != nil {
 		writeJSON(w, http.StatusInternalServerError, Response{
 			Success: false,
@@ -331,7 +331,7 @@ func VerifyHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := cert.VerifySignature(req.Cert, []byte(req.Data), signature); err != nil {
+	if err := core.VerifySignature(req.Cert, []byte(req.Data), signature); err != nil {
 		writeJSON(w, http.StatusOK, Response{
 			Success: true,
 			Data: map[string]interface{}{
@@ -379,7 +379,7 @@ func EncryptHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ciphertext, _, err := cert.EncryptWithCert(req.Cert, []byte(req.Data))
+	ciphertext, _, err := core.EncryptWithCert(req.Cert, []byte(req.Data))
 	if err != nil {
 		writeJSON(w, http.StatusInternalServerError, Response{
 			Success: false,
@@ -438,7 +438,7 @@ func DecryptHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	plaintext, err := cert.DecryptWithKey(req.Cert, req.Key, ciphertext)
+	plaintext, err := core.DecryptWithKey(req.Cert, req.Key, ciphertext)
 	if err != nil {
 		writeJSON(w, http.StatusInternalServerError, Response{
 			Success: false,
@@ -487,12 +487,12 @@ func ValidateChainHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var usage cert.CertUsage
+	var usage core.CertUsage
 	if req.Usage != "" {
 		usage = parseUsage(req.Usage)
 	}
 
-	cfg := &cert.CertValidateConfig{
+	cfg := &core.CertValidateConfig{
 		Cert:            req.Cert,
 		CACert:          req.CACert,
 		IntermediateCAs: req.IntermediateCAs,
@@ -500,7 +500,7 @@ func ValidateChainHandler(w http.ResponseWriter, r *http.Request) {
 		Usage:           usage,
 	}
 
-	if err := cert.ValidateCert(cfg); err != nil {
+	if err := core.ValidateCert(cfg); err != nil {
 		writeJSON(w, http.StatusOK, Response{
 			Success: true,
 			Data: map[string]interface{}{
@@ -521,18 +521,18 @@ func ValidateChainHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func parseUsage(usage string) cert.CertUsage {
+func parseUsage(usage string) core.CertUsage {
 	switch usage {
 	case "server":
-		return cert.UsageServer
+		return core.UsageServer
 	case "client":
-		return cert.UsageClient
+		return core.UsageClient
 	case "codesigning":
-		return cert.UsageCodeSigning
+		return core.UsageCodeSigning
 	case "email":
-		return cert.UsageEmailProtection
+		return core.UsageEmailProtection
 	default:
-		return cert.UsageServer
+		return core.UsageServer
 	}
 }
 

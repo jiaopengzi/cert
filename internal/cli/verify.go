@@ -14,7 +14,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/jiaopengzi/go-utils/cert"
+	"github.com/jiaopengzi/cert/core"
 	"github.com/urfave/cli/v3"
 )
 
@@ -57,7 +57,7 @@ func VerifyCmd() *cli.Command {
 				return fmt.Errorf("decode signature failed (解码签名失败: %w)", err)
 			}
 
-			if err := cert.VerifySignature(string(certPEM), data, signature); err != nil {
+			if err := core.VerifySignature(string(certPEM), data, signature); err != nil {
 				fmt.Printf("Signature verification FAILED (签名验证失败: %v)", err)
 				return nil
 			}

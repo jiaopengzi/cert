@@ -13,7 +13,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/jiaopengzi/go-utils/cert"
+	"github.com/jiaopengzi/cert/core"
 	"github.com/urfave/cli/v3"
 )
 
@@ -79,7 +79,7 @@ func validateChainAction(ctx context.Context, cmd *cli.Command) error {
 
 	usage := getValidateUsage(cmd.String("usage"))
 
-	cfg := &cert.CertValidateConfig{
+	cfg := &core.CertValidateConfig{
 		Cert:            string(certPEM),
 		CACert:          string(caCert),
 		IntermediateCAs: intermediateCAs,
@@ -87,7 +87,7 @@ func validateChainAction(ctx context.Context, cmd *cli.Command) error {
 		Usage:           usage,
 	}
 
-	if err := cert.ValidateCert(cfg); err != nil {
+	if err := core.ValidateCert(cfg); err != nil {
 		fmt.Printf("Certificate validation FAILED (证书验证失败: %v)", err)
 		return nil
 	}
@@ -114,7 +114,7 @@ func readIntermediateCAs(paths []string) ([]string, error) {
 }
 
 // getValidateUsage 获取验证用途
-func getValidateUsage(usageStr string) cert.CertUsage {
+func getValidateUsage(usageStr string) core.CertUsage {
 	if usageStr == "" {
 		return 0
 	}

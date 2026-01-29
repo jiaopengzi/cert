@@ -15,7 +15,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/jiaopengzi/go-utils/cert"
+	"github.com/jiaopengzi/cert/core"
 	"github.com/urfave/cli/v3"
 )
 
@@ -267,13 +267,13 @@ func testSignAndVerify(t *testing.T, algorithm string) {
 	testData := []byte("Hello, World!")
 
 	// 签名
-	signature, err := cert.SignData(string(keyPEM), testData)
+	signature, err := core.SignData(string(keyPEM), testData)
 	if err != nil {
 		t.Fatalf("Sign data failed: %v", err)
 	}
 
 	// 验签
-	if err := cert.VerifySignature(string(certPEM), testData, signature); err != nil {
+	if err := core.VerifySignature(string(certPEM), testData, signature); err != nil {
 		t.Fatalf("Verify signature failed: %v", err)
 	}
 }
@@ -349,13 +349,13 @@ func TestEncryptAndDecryptCmd(t *testing.T) {
 	plaintext := []byte("Secret Message")
 
 	// 加密
-	ciphertext, _, err := cert.EncryptWithCert(string(certPEM), plaintext)
+	ciphertext, _, err := core.EncryptWithCert(string(certPEM), plaintext)
 	if err != nil {
 		t.Fatalf("Encrypt failed: %v", err)
 	}
 
 	// 解密
-	decrypted, err := cert.DecryptWithKey(string(certPEM), string(keyPEM), ciphertext)
+	decrypted, err := core.DecryptWithKey(string(certPEM), string(keyPEM), ciphertext)
 	if err != nil {
 		t.Fatalf("Decrypt failed: %v", err)
 	}

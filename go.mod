@@ -3,12 +3,13 @@ module github.com/jiaopengzi/cert
 go 1.25.6
 
 require (
+	filippo.io/edwards25519 v1.1.0
 	github.com/jiaopengzi/go-utils v0.4.0
 	github.com/urfave/cli/v3 v3.0.0-beta1
+	golang.org/x/crypto v0.47.0
 )
 
 require (
-	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/bytedance/gopkg v0.1.3 // indirect
 	github.com/bytedance/sonic v1.14.2 // indirect
 	github.com/bytedance/sonic/loader v0.4.0 // indirect
@@ -47,7 +48,6 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.1 // indirect
 	golang.org/x/arch v0.23.0 // indirect
-	golang.org/x/crypto v0.47.0 // indirect
 	golang.org/x/net v0.49.0 // indirect
 	golang.org/x/sys v0.40.0 // indirect
 	golang.org/x/text v0.33.0 // indirect

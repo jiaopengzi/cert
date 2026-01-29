@@ -14,7 +14,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/jiaopengzi/go-utils/cert"
+	"github.com/jiaopengzi/cert/core"
 	"github.com/urfave/cli/v3"
 )
 
@@ -52,7 +52,7 @@ func SignCmd() *cli.Command {
 
 			data := []byte(cmd.String("data"))
 
-			signature, err := cert.SignData(string(keyPEM), data)
+			signature, err := core.SignData(string(keyPEM), data)
 			if err != nil {
 				return fmt.Errorf("sign data failed (签名失败: %w)", err)
 			}

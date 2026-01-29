@@ -14,7 +14,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/jiaopengzi/go-utils/cert"
+	"github.com/jiaopengzi/cert/core"
 	"github.com/urfave/cli/v3"
 )
 
@@ -46,7 +46,7 @@ func EncryptCmd() *cli.Command {
 
 			plaintext := []byte(cmd.String("data"))
 
-			ciphertext, _, err := cert.EncryptWithCert(string(certPEM), plaintext)
+			ciphertext, _, err := core.EncryptWithCert(string(certPEM), plaintext)
 			if err != nil {
 				return fmt.Errorf("encrypt failed (加密失败: %w)", err)
 			}

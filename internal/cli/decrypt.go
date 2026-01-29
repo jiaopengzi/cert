@@ -14,7 +14,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/jiaopengzi/go-utils/cert"
+	"github.com/jiaopengzi/cert/core"
 	"github.com/urfave/cli/v3"
 )
 
@@ -61,7 +61,7 @@ func DecryptCmd() *cli.Command {
 				return fmt.Errorf("decode ciphertext failed (解码密文失败: %w)", err)
 			}
 
-			plaintext, err := cert.DecryptWithKey(string(certPEM), string(keyPEM), ciphertext)
+			plaintext, err := core.DecryptWithKey(string(certPEM), string(keyPEM), ciphertext)
 			if err != nil {
 				return fmt.Errorf("decrypt failed (解密失败: %w)", err)
 			}
