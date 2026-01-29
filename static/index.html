@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" id="dynamic-favicon" href="/favicon.ico" />
     <title>证书工具 - Certificate Tool</title>
     <style>
         :root {
@@ -408,7 +409,7 @@
             <div class="form-row">
                 <div class="form-group">
                     <label>有效期(天) / Valid Days</label>
-                    <input type="number" id="grc-days" value="3650">
+                    <input type="number" id="grc-days" value="3650" min="1">
                 </div>
                 <div class="form-group">
                     <label>通用名称 / Common Name</label>
@@ -443,11 +444,13 @@
         <div id="signcert" class="tab-content">
             <h3 class="section-title">签发证书 / Sign Certificate</h3>
             <div class="form-group">
-                <label>CA 证书 / CA Certificate <span class="label-hint">(PEM 格式)</span></label>
+                <label><span style="color: red;">*</span> CA 证书 / CA Certificate <span class="label-hint">(PEM
+                        格式)</span></label>
                 <textarea id="sc-cacert" placeholder="-----BEGIN CERTIFICATE-----..."></textarea>
             </div>
             <div class="form-group">
-                <label>CA 私钥 / CA Private Key <span class="label-hint">(PEM 格式)</span></label>
+                <label><span style="color: red;">*</span> CA 私钥 / CA Private Key <span class="label-hint">(PEM
+                        格式)</span></label>
                 <textarea id="sc-cakey" placeholder="-----BEGIN PRIVATE KEY-----..."></textarea>
             </div>
             <div class="form-row">
@@ -468,7 +471,7 @@
                 </div>
                 <div class="form-group">
                     <label>有效期(天) / Valid Days</label>
-                    <input type="number" id="sc-days" value="365">
+                    <input type="number" id="sc-days" value="365" min="1">
                 </div>
             </div>
             <div class="form-row">
@@ -516,11 +519,12 @@
         <div id="sign" class="tab-content">
             <h3 class="section-title">数据签名 / Sign Data</h3>
             <div class="form-group">
-                <label>私钥 / Private Key <span class="label-hint">(PEM 格式)</span></label>
+                <label><span style="color: red;">*</span> 私钥 / Private Key <span class="label-hint">(PEM
+                        格式)</span></label>
                 <textarea id="sign-key" placeholder="-----BEGIN PRIVATE KEY-----..."></textarea>
             </div>
             <div class="form-group">
-                <label>待签名数据 / Data to Sign</label>
+                <label><span style="color: red;">*</span> 待签名数据 / Data to Sign</label>
                 <textarea id="sign-data" placeholder="Enter data to sign..."></textarea>
             </div>
             <div class="form-group">
@@ -533,15 +537,17 @@
         <div id="verify" class="tab-content">
             <h3 class="section-title">验证签名 / Verify Signature</h3>
             <div class="form-group">
-                <label>证书 / Certificate <span class="label-hint">(PEM 格式)</span></label>
+                <label><span style="color: red;">*</span> 证书 / Certificate <span class="label-hint">(PEM
+                        格式)</span></label>
                 <textarea id="verify-cert" placeholder="-----BEGIN CERTIFICATE-----..."></textarea>
             </div>
             <div class="form-group">
-                <label>原始数据 / Original Data</label>
+                <label><span style="color: red;">*</span> 原始数据 / Original Data</label>
                 <textarea id="verify-data" placeholder="Original data..."></textarea>
             </div>
             <div class="form-group">
-                <label>签名 / Signature <span class="label-hint">(Base64 编码)</span></label>
+                <label><span style="color: red;">*</span> 签名 / Signature <span class="label-hint">(Base64
+                        编码)</span></label>
                 <textarea id="verify-signature" placeholder="Base64 encoded signature..."></textarea>
             </div>
             <div class="form-group">
@@ -554,11 +560,12 @@
         <div id="encrypt" class="tab-content">
             <h3 class="section-title">加密 / Encrypt</h3>
             <div class="form-group">
-                <label>证书 / Certificate <span class="label-hint">(PEM 格式)</span></label>
+                <label><span style="color: red;">*</span> 证书 / Certificate <span class="label-hint">(PEM
+                        格式)</span></label>
                 <textarea id="encrypt-cert" placeholder="-----BEGIN CERTIFICATE-----..."></textarea>
             </div>
             <div class="form-group">
-                <label>明文 / Plaintext</label>
+                <label><span style="color: red;">*</span> 明文 / Plaintext</label>
                 <textarea id="encrypt-data" placeholder="Enter plaintext to encrypt..."></textarea>
             </div>
             <div class="form-group">
@@ -571,15 +578,18 @@
         <div id="decrypt" class="tab-content">
             <h3 class="section-title">解密 / Decrypt</h3>
             <div class="form-group">
-                <label>证书 / Certificate <span class="label-hint">(PEM 格式)</span></label>
+                <label><span style="color: red;">*</span> 证书 / Certificate <span class="label-hint">(PEM
+                        格式)</span></label>
                 <textarea id="decrypt-cert" placeholder="-----BEGIN CERTIFICATE-----..."></textarea>
             </div>
             <div class="form-group">
-                <label>私钥 / Private Key <span class="label-hint">(PEM 格式)</span></label>
+                <label><span style="color: red;">*</span> 私钥 / Private Key <span class="label-hint">(PEM
+                        格式)</span></label>
                 <textarea id="decrypt-key" placeholder="-----BEGIN PRIVATE KEY-----..."></textarea>
             </div>
             <div class="form-group">
-                <label>密文 / Ciphertext <span class="label-hint">(Base64 编码)</span></label>
+                <label><span style="color: red;">*</span> 密文 / Ciphertext <span class="label-hint">(Base64
+                        编码)</span></label>
                 <textarea id="decrypt-data" placeholder="Base64 encoded ciphertext..."></textarea>
             </div>
             <div class="form-group">
@@ -592,11 +602,13 @@
         <div id="validatechain" class="tab-content">
             <h3 class="section-title">验证证书链 / Validate Certificate Chain</h3>
             <div class="form-group">
-                <label>CA 证书 / CA Certificate <span class="label-hint">(PEM 格式)</span></label>
+                <label><span style="color: red;">*</span> CA 证书 / CA Certificate <span class="label-hint">(PEM
+                        格式)</span></label>
                 <textarea id="vc-cacert" placeholder="-----BEGIN CERTIFICATE-----..."></textarea>
             </div>
             <div class="form-group">
-                <label>待验证证书 / Certificate to Validate <span class="label-hint">(PEM 格式)</span></label>
+                <label><span style="color: red;">*</span> 待验证证书 / Certificate to Validate <span class="label-hint">(PEM
+                        格式)</span></label>
                 <textarea id="vc-cert" placeholder="-----BEGIN CERTIFICATE-----..."></textarea>
             </div>
             <div class="form-group">
@@ -629,7 +641,8 @@
         <div id="certinfo" class="tab-content">
             <h3 class="section-title">查看证书信息 / View Certificate Info</h3>
             <div class="form-group">
-                <label>证书 / Certificate <span class="label-hint">(PEM 格式)</span></label>
+                <label><span style="color: red;">*</span> 证书 / Certificate <span class="label-hint">(PEM
+                        格式)</span></label>
                 <textarea id="ci-cert" placeholder="-----BEGIN CERTIFICATE-----..."></textarea>
             </div>
             <div class="form-group">
@@ -710,21 +723,24 @@
         <div id="signcsr" class="tab-content">
             <h3 class="section-title">签发 CSR / Sign CSR</h3>
             <div class="form-group">
-                <label>CA 证书 / CA Certificate <span class="label-hint">(PEM 格式)</span></label>
+                <label><span style="color: red;">*</span> CA 证书 / CA Certificate <span class="label-hint">(PEM
+                        格式)</span></label>
                 <textarea id="scsr-cacert" placeholder="-----BEGIN CERTIFICATE-----..."></textarea>
             </div>
             <div class="form-group">
-                <label>CA 私钥 / CA Private Key <span class="label-hint">(PEM 格式)</span></label>
+                <label><span style="color: red;">*</span> CA 私钥 / CA Private Key <span class="label-hint">(PEM
+                        格式)</span></label>
                 <textarea id="scsr-cakey" placeholder="-----BEGIN PRIVATE KEY-----..."></textarea>
             </div>
             <div class="form-group">
-                <label>CSR / Certificate Signing Request <span class="label-hint">(PEM 格式)</span></label>
+                <label><span style="color: red;">*</span> CSR / Certificate Signing Request <span
+                        class="label-hint">(PEM 格式)</span></label>
                 <textarea id="scsr-csr" placeholder="-----BEGIN CERTIFICATE REQUEST-----..."></textarea>
             </div>
             <div class="form-row">
                 <div class="form-group">
                     <label>有效期(天) / Valid Days</label>
-                    <input type="number" id="scsr-days" value="365">
+                    <input type="number" id="scsr-days" value="365" min="1">
                 </div>
                 <div class="form-group">
                     <label>用途 / Usage</label>
@@ -752,11 +768,13 @@
         <div id="gencrl" class="tab-content">
             <h3 class="section-title">生成 CRL / Generate CRL</h3>
             <div class="form-group">
-                <label>CA 证书 / CA Certificate <span class="label-hint">(PEM 格式)</span></label>
+                <label><span style="color: red;">*</span> CA 证书 / CA Certificate <span class="label-hint">(PEM
+                        格式)</span></label>
                 <textarea id="crl-cacert" placeholder="-----BEGIN CERTIFICATE-----..."></textarea>
             </div>
             <div class="form-group">
-                <label>CA 私钥 / CA Private Key <span class="label-hint">(PEM 格式)</span></label>
+                <label><span style="color: red;">*</span> CA 私钥 / CA Private Key <span class="label-hint">(PEM
+                        格式)</span></label>
                 <textarea id="crl-cakey" placeholder="-----BEGIN PRIVATE KEY-----..."></textarea>
             </div>
             <div class="form-group">
@@ -766,8 +784,23 @@
                     style="min-height: 200px;"></textarea>
             </div>
             <div class="form-group">
+                <label>现有 CRL / Existing CRL <span class="label-hint">(可选, 新吊销会合并进去)</span></label>
+                <textarea id="crl-existing" placeholder="-----BEGIN X509 CRL-----..."></textarea>
+            </div>
+            <div class="form-group" style="display: flex; gap: 20px; flex-wrap: wrap;">
+                <label style="display: flex; align-items: center; gap: 8px;">
+                    <input type="checkbox" id="crl-skip-expired">
+                    <span>跳过已过期证书 / Skip Expired</span>
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px;">
+                    <span>剔除吊销超过 / Prune After</span>
+                    <input type="number" id="crl-prune-days" value="0" min="0" style="width: 80px;">
+                    <span>天 / days</span>
+                </label>
+            </div>
+            <div class="form-group">
                 <label>CRL 有效期(天) / CRL Valid Days</label>
-                <input type="number" id="crl-days" value="30">
+                <input type="number" id="crl-days" value="30" min="1">
             </div>
             <div class="form-group">
                 <button class="btn btn-primary" onclick="genCRL()">生成 / Generate</button>
@@ -779,7 +812,8 @@
         <div id="viewcrl" class="tab-content">
             <h3 class="section-title">查看 CRL / View CRL</h3>
             <div class="form-group">
-                <label>CRL / Certificate Revocation List <span class="label-hint">(PEM 格式)</span></label>
+                <label><span style="color: red;">*</span> CRL / Certificate Revocation List <span
+                        class="label-hint">(PEM 格式)</span></label>
                 <textarea id="vcrl-crl" placeholder="-----BEGIN X509 CRL-----..."></textarea>
             </div>
             <div class="form-group">
@@ -792,11 +826,13 @@
         <div id="checkrevoked" class="tab-content">
             <h3 class="section-title">检查证书吊销状态 / Check Certificate Revocation</h3>
             <div class="form-group">
-                <label>证书 / Certificate <span class="label-hint">(PEM 格式)</span></label>
+                <label><span style="color: red;">*</span> 证书 / Certificate <span class="label-hint">(PEM
+                        格式)</span></label>
                 <textarea id="cr-cert" placeholder="-----BEGIN CERTIFICATE-----..."></textarea>
             </div>
             <div class="form-group">
-                <label>CRL / Certificate Revocation List <span class="label-hint">(PEM 格式)</span></label>
+                <label><span style="color: red;">*</span> CRL / Certificate Revocation List <span
+                        class="label-hint">(PEM 格式)</span></label>
                 <textarea id="cr-crl" placeholder="-----BEGIN X509 CRL-----..."></textarea>
             </div>
             <div class="form-group">
@@ -1195,6 +1231,9 @@
                 caCert: document.getElementById('crl-cacert').value,
                 caKey: document.getElementById('crl-cakey').value,
                 revokedCerts: revokedCerts,
+                existingCRL: document.getElementById('crl-existing').value,
+                skipExpired: document.getElementById('crl-skip-expired').checked,
+                pruneAfterDays: parseInt(document.getElementById('crl-prune-days').value) || 0,
                 days: parseInt(document.getElementById('crl-days').value)
             };
 
@@ -1210,11 +1249,19 @@
                     const revokedInfo = result.data.revokedSerials && result.data.revokedSerials.length > 0
                         ? `<p><strong>已吊销序列号 / Revoked Serials:</strong> ${result.data.revokedSerials.join(', ')}</p>`
                         : '';
+                    const skippedInfo = result.data.skippedExpired > 0
+                        ? `<p><strong>跳过过期证书 / Skipped Expired:</strong> ${result.data.skippedExpired}</p>`
+                        : '';
+                    const prunedInfo = result.data.prunedCount > 0
+                        ? `<p><strong>剔除旧记录 / Pruned Old:</strong> ${result.data.prunedCount}</p>`
+                        : '';
                     showResult('crl-result', true, `
                         <h4>✅ ${result.message}</h4>
                         <p><strong>本次更新 / This Update:</strong> ${result.data.thisUpdate}</p>
                         <p><strong>下次更新 / Next Update:</strong> ${result.data.nextUpdate}</p>
                         ${revokedInfo}
+                        ${skippedInfo}
+                        ${prunedInfo}
                         <p><strong>CRL:</strong> <button class="copy-btn" onclick="copyToClipboard(\`${result.data.crl.replace(/`/g, '\\`')}\`, this)">复制</button></p>
                         <pre>${result.data.crl}</pre>
                     `);

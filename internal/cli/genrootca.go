@@ -97,6 +97,11 @@ func GenRootCACmd() *cli.Command {
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
+			days := int(cmd.Int("days"))
+			if days <= 0 {
+				return fmt.Errorf("days must be greater than 0 (有效期必须大于 0)")
+			}
+
 			cfg := &core.CACertConfig{
 				KeyAlgorithm: core.KeyAlgorithm(cmd.String("algorithm")),
 				RSAKeyBits:   int(cmd.Int("rsa-bits")),

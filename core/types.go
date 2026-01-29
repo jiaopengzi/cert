@@ -9,6 +9,7 @@
 package core
 
 import (
+	"crypto/x509"
 	"math/big"
 	"net"
 	"time"
@@ -124,11 +125,25 @@ type CRLConfig struct {
 	CACert         string     // CA 证书
 	CAKey          string     // CA 私钥
 	RevokedCerts   []string   // 要吊销的证书列表(PEM 格式)
+	ExistingCRL    string     // 现有的 CRL(PEM 格式), 新吊销会合并进去
+	SkipExpired    bool       // 跳过已过期的证书(不吊销已过期的证书)
+	PruneAfterDays int        // 剔除吊销超过 N 天的历史记录(0 表示不剔除)
 	DaysValid      int        // CRL 有效期(天)
 	CRL            string     // 生成的 CRL(PEM 格式)
 	ThisUpdate     time.Time  // 本次更新时间
 	NextUpdate     time.Time  // 下次更新时间
 	RevokedSerials []*big.Int // 已吊销证书序列号列表
+	SkippedExpired int        // 跳过的已过期证书数量(输出)
+	PrunedCount    int        // 剔除的历史记录数量(输出)
+}
+
+// crlBuilder 用于构建 CRL 的内部状态.
+type crlBuilder struct {
+	cfg          *CRLConfig
+	revokedCerts []x509.RevocationListEntry
+	serialSet    map[string]bool
+	crlNumber    *big.Int
+	now          time.Time
 }
 
 // RevokedCertInfo 吊销证书信息.

@@ -109,6 +109,11 @@ func SignCertCmd() *cli.Command {
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
+			days := int(cmd.Int("days"))
+			if days <= 0 {
+				return fmt.Errorf("days must be greater than 0 (有效期必须大于 0)")
+			}
+
 			caCert, err := os.ReadFile(cmd.String("ca-cert"))
 			if err != nil {
 				return fmt.Errorf("read CA certificate failed (读取 CA 证书失败: %w)", err)

@@ -755,10 +755,13 @@ func SignCSRHandler(w http.ResponseWriter, r *http.Request) {
 
 // GenCRLRequest 生成 CRL 请求
 type GenCRLRequest struct {
-	CACert       string   `json:"caCert"`
-	CAKey        string   `json:"caKey"`
-	RevokedCerts []string `json:"revokedCerts"`
-	Days         int      `json:"days"`
+	CACert         string   `json:"caCert"`
+	CAKey          string   `json:"caKey"`
+	RevokedCerts   []string `json:"revokedCerts"`
+	ExistingCRL    string   `json:"existingCRL"`
+	SkipExpired    bool     `json:"skipExpired"`
+	PruneAfterDays int      `json:"pruneAfterDays"`
+	Days           int      `json:"days"`
 }
 
 // GenCRLHandler 生成 CRL 处理器
@@ -788,10 +791,13 @@ func GenCRLHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cfg := &core.CRLConfig{
-		CACert:       req.CACert,
-		CAKey:        req.CAKey,
-		RevokedCerts: req.RevokedCerts,
-		DaysValid:    req.Days,
+		CACert:         req.CACert,
+		CAKey:          req.CAKey,
+		RevokedCerts:   req.RevokedCerts,
+		ExistingCRL:    req.ExistingCRL,
+		SkipExpired:    req.SkipExpired,
+		PruneAfterDays: req.PruneAfterDays,
+		DaysValid:      req.Days,
 	}
 
 	if err := core.GenerateCRL(cfg); err != nil {
@@ -817,6 +823,8 @@ func GenCRLHandler(w http.ResponseWriter, r *http.Request) {
 			"thisUpdate":     cfg.ThisUpdate.Format("2006-01-02 15:04:05"),
 			"nextUpdate":     cfg.NextUpdate.Format("2006-01-02 15:04:05"),
 			"revokedSerials": revokedSerials,
+			"skippedExpired": cfg.SkippedExpired,
+			"prunedCount":    cfg.PrunedCount,
 		},
 	})
 }

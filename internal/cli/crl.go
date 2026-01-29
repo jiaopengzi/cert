@@ -37,6 +37,22 @@ func genCRLFlags() []cli.Flag {
 			Aliases: []string{"r"},
 			Usage:   "Certificate files to revoke (要吊销的证书文件路径，可多次指定)",
 		},
+		&cli.StringFlag{
+			Name:    "existing",
+			Aliases: []string{"e"},
+			Usage:   "Existing CRL file to merge with (现有 CRL 文件，新吊销会合并进去)",
+		},
+		&cli.BoolFlag{
+			Name:    "skip-expired",
+			Aliases: []string{"se"},
+			Usage:   "Skip expired certificates (跳过已过期的证书, 不吊销)",
+		},
+		&cli.IntFlag{
+			Name:    "prune-days",
+			Aliases: []string{"pd"},
+			Value:   0,
+			Usage:   "Remove entries older than N days from existing CRL (剔除吊销超过 N 天的历史记录, 0=不剔除)",
+		},
 		&cli.IntFlag{
 			Name:    "days",
 			Aliases: []string{"d"},
@@ -54,6 +70,16 @@ func genCRLFlags() []cli.Flag {
 
 // genCRLAction 生成 CRL 的公共 action 函数
 func genCRLAction(_ context.Context, cmd *cli.Command) error {
+	days := int(cmd.Int("days"))
+	if days <= 0 {
+		return fmt.Errorf("days must be greater than 0 (CRL 有效期必须大于 0)")
+	}
+
+	pruneDays := int(cmd.Int("prune-days"))
+	if pruneDays < 0 {
+		return fmt.Errorf("prune-days must be greater than or equal to 0 (剔除天数必须大于等于 0)")
+	}
+
 	caCert, err := os.ReadFile(cmd.String("ca-cert"))
 	if err != nil {
 		return fmt.Errorf("read CA certificate failed (读取 CA 证书失败): %w", err)
@@ -76,11 +102,26 @@ func genCRLAction(_ context.Context, cmd *cli.Command) error {
 		revokedCerts = append(revokedCerts, string(certData))
 	}
 
+	// 读取现有的 CRL
+	var existingCRL string
+
+	if existingPath := cmd.String("existing"); existingPath != "" {
+		existingData, readErr := os.ReadFile(existingPath)
+		if readErr != nil {
+			return fmt.Errorf("read existing CRL %s failed (读取现有 CRL 失败): %w", existingPath, readErr)
+		}
+
+		existingCRL = string(existingData)
+	}
+
 	cfg := &core.CRLConfig{
-		CACert:       string(caCert),
-		CAKey:        string(caKey),
-		RevokedCerts: revokedCerts,
-		DaysValid:    int(cmd.Int("days")),
+		CACert:         string(caCert),
+		CAKey:          string(caKey),
+		RevokedCerts:   revokedCerts,
+		ExistingCRL:    existingCRL,
+		SkipExpired:    cmd.Bool("skip-expired"),
+		PruneAfterDays: int(cmd.Int("prune-days")),
+		DaysValid:      int(cmd.Int("days")),
 	}
 
 	if err := core.GenerateCRL(cfg); err != nil {
@@ -97,6 +138,14 @@ func genCRLAction(_ context.Context, cmd *cli.Command) error {
 	fmt.Printf("  This Update (本次更新): %s\n", cfg.ThisUpdate.Format("2006-01-02 15:04:05"))
 	fmt.Printf("  Next Update (下次更新): %s\n", cfg.NextUpdate.Format("2006-01-02 15:04:05"))
 	fmt.Printf("  Revoked Count (吊销数量): %d\n", len(cfg.RevokedSerials))
+
+	if cfg.SkippedExpired > 0 {
+		fmt.Printf("  Skipped Expired (跳过过期): %d\n", cfg.SkippedExpired)
+	}
+
+	if cfg.PrunedCount > 0 {
+		fmt.Printf("  Pruned Old (剔除旧记录): %d\n", cfg.PrunedCount)
+	}
 
 	return nil
 }
