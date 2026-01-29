@@ -30,14 +30,21 @@
         "golangci",
         "gopls",
         "GOPROXY",
+        "Grotesk",
         "LASTEXITCODE",
         "ldflags",
         "procps",
+        "Roboto",
         "signcert",
         "softprops",
         "trimpath",
         "ucli",
         "urfave",
         "validatechain"
-    ]
+    ],
+    "chat.agentSkillsLocations": {
+        "~/skills": true
+    },
+    "chat.experimental.useSkillAdherencePrompt": true,
+    "github.copilot.chat.agentCustomizationSkill.enabled": true
 }
