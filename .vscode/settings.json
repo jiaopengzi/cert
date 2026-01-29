@@ -33,6 +33,7 @@
         "dnsnames",
         "ecdsacurve",
         "gcrl",
+        "gcsr",
         "gencrl",
         "gencsr",
         "genrootca",
