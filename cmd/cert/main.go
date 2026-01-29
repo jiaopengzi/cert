@@ -21,13 +21,22 @@ import (
 // Version 软件版本号，构建时通过 ldflags 注入
 var Version = "dev"
 
+// Commit 提交 Git Commit Hash，构建时通过 ldflags 注入
+var Commit = "unknown"
+
+// BuildTime 构建时间，构建时通过 ldflags 注入
+var BuildTime = "unknown"
+
 func main() {
+	// 组合完整版本信息
+	fullVersion := fmt.Sprintf("%s\nCommit: %s\nBuildTime: %s", Version, Commit, BuildTime)
+
 	app := &ucli.Command{
 		Name:    "cert",
 		Usage:   "A simple certificate tool (简单的证书工具)",
 		Version: Version,
 		Commands: []*ucli.Command{
-			cli.VersionCmd(Version),
+			cli.VersionCmd(fullVersion),
 			cli.GenRootCACmd(),
 			cli.SignCertCmd(),
 			cli.CertInfoCmd(),

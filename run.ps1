@@ -28,6 +28,65 @@ Write-Host ""
 $choice = Read-Host "请输入编号选择对应的操作"
 Write-Host ""
 
+# 获取 Git 相关的版本信息, 用于 ldflags 注入版本信息
+function getGitVersionInfo {
+    $Version = "dev" # 版本号
+    $Commit = "" # 提交哈希
+    $BuildTime = "" # 构建时间
+
+    # 格式化构建时间, 包含时区偏移(例如 2025-10-23 15:04:05 +08:00)
+    $BuildTime = (Get-Date).ToString("yyyy-MM-dd HH:mm:ss zzz")
+
+    # 获取最新的 Git Commit Hash(完整)
+    $Commit = (git rev-parse HEAD 2>$null).Trim()
+    if (-not $Commit) {
+        Write-Host "警告：无法获取 Git Commit, 可能不在 Git 仓库中。" -ForegroundColor Yellow
+        $Commit = "unknown"
+    }
+
+    # 参考: https://semver.org/lang/zh-CN/
+    # 获取最近的符合 1.2.3 0.1.2-beta+251113, 同时兼容带小写v前缀等格式的 Git Tag, 如果没有或不符合格式, 则为 "dev"
+    $VersionTag = (git describe --tags --abbrev=0 2>$null | Select-String '^v?(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(?:-(?:0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)(?:\.(?:0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*))*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$' | Select-Object -First 1)
+
+    if ($VersionTag) {
+        $Version = $VersionTag.Line.Trim()
+        Write-Host "检测到 Git Tag 版本: $Version" -ForegroundColor Green
+    }
+    else {
+        Write-Host "未检测到符合 semver 格式的 Git Tag, 将不注入 Version" -ForegroundColor Yellow
+        # Version 保持为空, 后续不注入该参数
+    }
+
+    # 返回一个 hashtable, 供外部拼接 ldflags 使用
+    return @{
+        Version   = $Version
+        Commit    = $Commit
+        BuildTime = $BuildTime
+    }
+}
+
+# 根据 Git 信息生成 -ldflags 字符串
+function getLdflags {
+    $gitInfo = getGitVersionInfo
+
+    $ldflags = "-s -w"  # 默认的优化参数
+
+    # 如果 Version 非空, 则注入 Version
+    if ($gitInfo.Version -and $gitInfo.Version -ne "") {
+        $ldflags += " -X 'main.Version=$($gitInfo.Version)'"
+    }
+
+    # 注入 Commit
+    $ldflags += " -X 'main.Commit=$($gitInfo.Commit)'"
+
+    # 注入 BuildTime
+    $ldflags += " -X 'main.BuildTime=$($gitInfo.BuildTime)'"
+
+    Write-Host "编译参数 ldflags: $ldflags" -ForegroundColor Green
+
+    return $ldflags
+}
+
 # 全部操作：格式化代码, 检查静态错误, 为所有平台生成二进制文件
 function all {
     buildEnvInit
@@ -51,7 +110,8 @@ function buildEnvInit {
 # 为 Windows 系统编译 Go 代码并生成可执行文件 并复制 static 目录到 bin/windows 目录下
 function buildWindows {
     go env -w GOOS=windows
-    go build -trimpath -ldflags "-s -w" -o "./bin/windows/$BINARY-windows.exe" ./cmd/cert
+    $ldflags = getLdflags
+    go build -trimpath -ldflags "$ldflags" -o "./bin/windows/$BINARY-windows.exe" ./cmd/cert
     Copy-Item -Recurse -Force .\static .\bin\windows\static
     Write-Host "✅ Windows 二进制文件生成完毕"
 }
@@ -66,7 +126,8 @@ function buildWindowsRestoreWindowsEnv {
 # 为 Linux 系统编译 Go 代码并生成可执行文件 并复制 static 目录到 bin/linux 目录下
 function buildLinux {
     go env -w GOOS=linux
-    go build -trimpath -ldflags "-s -w" -o "./bin/linux/$BINARY-linux" ./cmd/cert
+    $ldflags = getLdflags
+    go build -trimpath -ldflags "$ldflags" -o "./bin/linux/$BINARY-linux" ./cmd/cert
     Copy-Item -Recurse -Force .\static .\bin\linux\static
     Write-Host "✅ Linux 二进制文件生成完毕"
 }
@@ -81,7 +142,8 @@ function buildLinuxRestoreWindowsEnv {
 # 为 macOS 系统编译 Go 代码并生成可执行文件 并复制 static 目录到 bin/macos 目录下
 function buildMacos {
     go env -w GOOS=darwin
-    go build -trimpath -ldflags "-s -w" -o "./bin/macos/$BINARY-macos" ./cmd/cert
+    $ldflags = getLdflags
+    go build -trimpath -ldflags "$ldflags" -o "./bin/macos/$BINARY-macos" ./cmd/cert
     Copy-Item -Recurse -Force .\static .\bin\macos\static
     Write-Host "✅ macOS 二进制文件生成完毕"
 }
@@ -100,7 +162,8 @@ function runOnly {
 
 # 编译运行 Go 代码
 function buildRun {
-    go build -trimpath -ldflags "-s -w" -o "./bin/windows/$BINARY-windows.exe" ./cmd/cert
+    $ldflags = getLdflags
+    go build -trimpath -ldflags "$ldflags" -o "./bin/windows/$BINARY-windows.exe" ./cmd/cert
     Copy-Item -Recurse -Force .\static .\bin\windows\static
     runOnly
 }
