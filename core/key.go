@@ -73,6 +73,7 @@ func publicKey(priv crypto.Signer) crypto.PublicKey {
 }
 
 // ParsePrivateKey 解析 PEM 格式私钥(支持 PKCS#8, PKCS#1, SEC 1).
+// nolint:gocognit
 func ParsePrivateKey(keyStr string) (crypto.Signer, error) {
 	keyBlock, _ := pem.Decode([]byte(keyStr))
 	if keyBlock == nil {
