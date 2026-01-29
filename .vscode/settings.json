@@ -25,7 +25,11 @@
     "cSpell.words": [
         "addrs",
         "cakey",
+        "certinfo",
+        "checkrevoked",
         "dnsname",
+        "gcrl",
+        "gencrl",
         "genrootca",
         "GOARCH",
         "golangci",
@@ -42,7 +46,9 @@
         "trimpath",
         "ucli",
         "urfave",
-        "validatechain"
+        "validatechain",
+        "vcrl",
+        "viewcrl"
     ],
     "chat.agentSkillsLocations": {
         "~/skills": true

@@ -364,11 +364,17 @@
         <div class="tabs">
             <button class="tab-btn active" onclick="showTab('genrootca')">生成根证书<br>Gen Root CA</button>
             <button class="tab-btn" onclick="showTab('signcert')">签发证书<br>Sign Cert</button>
+            <button class="tab-btn" onclick="showTab('certinfo')">查看证书<br>Cert Info</button>
             <button class="tab-btn" onclick="showTab('sign')">数据签名<br>Sign Data</button>
             <button class="tab-btn" onclick="showTab('verify')">验证签名<br>Verify</button>
             <button class="tab-btn" onclick="showTab('encrypt')">加密<br>Encrypt</button>
             <button class="tab-btn" onclick="showTab('decrypt')">解密<br>Decrypt</button>
             <button class="tab-btn" onclick="showTab('validatechain')">验证证书链<br>Validate Chain</button>
+            <button class="tab-btn" onclick="showTab('gencsr')">生成 CSR<br>Gen CSR</button>
+            <button class="tab-btn" onclick="showTab('signcsr')">签发 CSR<br>Sign CSR</button>
+            <button class="tab-btn" onclick="showTab('gencrl')">生成 CRL<br>Gen CRL</button>
+            <button class="tab-btn" onclick="showTab('viewcrl')">查看 CRL<br>View CRL</button>
+            <button class="tab-btn" onclick="showTab('checkrevoked')">检查吊销<br>Check Revoked</button>
         </div>
 
         <!-- 生成根证书 -->
@@ -617,6 +623,186 @@
                 <button class="btn btn-primary" onclick="validateChain()">验证 / Validate</button>
             </div>
             <div id="vc-result" class="result"></div>
+        </div>
+
+        <!-- 查看证书信息 -->
+        <div id="certinfo" class="tab-content">
+            <h3 class="section-title">查看证书信息 / View Certificate Info</h3>
+            <div class="form-group">
+                <label>证书 / Certificate <span class="label-hint">(PEM 格式)</span></label>
+                <textarea id="ci-cert" placeholder="-----BEGIN CERTIFICATE-----..."></textarea>
+            </div>
+            <div class="form-group">
+                <button class="btn btn-primary" onclick="viewCertInfo()">查看 / View</button>
+            </div>
+            <div id="ci-result" class="result"></div>
+        </div>
+
+        <!-- 生成 CSR -->
+        <div id="gencsr" class="tab-content">
+            <h3 class="section-title">生成 CSR / Generate CSR</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>密钥算法 / Algorithm</label>
+                    <select id="csr-algorithm">
+                        <option value="RSA">RSA</option>
+                        <option value="ECDSA">ECDSA</option>
+                        <option value="Ed25519">Ed25519</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>RSA 位数 / RSA Bits</label>
+                    <select id="csr-rsabits">
+                        <option value="2048">2048</option>
+                        <option value="4096">4096</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>ECDSA 曲线 / ECDSA Curve</label>
+                    <select id="csr-ecdsacurve">
+                        <option value="P256">P256</option>
+                        <option value="P384">P384</option>
+                        <option value="P521">P521</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>通用名称 / Common Name</label>
+                    <input type="text" id="csr-cn" value="localhost">
+                </div>
+                <div class="form-group">
+                    <label>组织 / Organization</label>
+                    <input type="text" id="csr-org" placeholder="Optional">
+                </div>
+                <div class="form-group">
+                    <label>国家 / Country</label>
+                    <input type="text" id="csr-country" placeholder="CN">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>省份 / State</label>
+                    <input type="text" id="csr-state" placeholder="Optional">
+                </div>
+                <div class="form-group">
+                    <label>城市 / Locality</label>
+                    <input type="text" id="csr-locality" placeholder="Optional">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>DNS 名称 / DNS Names <span class="label-hint">(逗号分隔)</span></label>
+                    <input type="text" id="csr-dnsnames" placeholder="example.com,www.example.com">
+                </div>
+                <div class="form-group">
+                    <label>IP 地址 / IP Addresses <span class="label-hint">(逗号分隔)</span></label>
+                    <input type="text" id="csr-ipaddrs" placeholder="192.168.1.1,10.0.0.1">
+                </div>
+            </div>
+            <div class="form-group">
+                <button class="btn btn-primary" onclick="genCSR()">生成 / Generate</button>
+            </div>
+            <div id="csr-result" class="result"></div>
+        </div>
+
+        <!-- 签发 CSR -->
+        <div id="signcsr" class="tab-content">
+            <h3 class="section-title">签发 CSR / Sign CSR</h3>
+            <div class="form-group">
+                <label>CA 证书 / CA Certificate <span class="label-hint">(PEM 格式)</span></label>
+                <textarea id="scsr-cacert" placeholder="-----BEGIN CERTIFICATE-----..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>CA 私钥 / CA Private Key <span class="label-hint">(PEM 格式)</span></label>
+                <textarea id="scsr-cakey" placeholder="-----BEGIN PRIVATE KEY-----..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>CSR / Certificate Signing Request <span class="label-hint">(PEM 格式)</span></label>
+                <textarea id="scsr-csr" placeholder="-----BEGIN CERTIFICATE REQUEST-----..."></textarea>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>有效期(天) / Valid Days</label>
+                    <input type="number" id="scsr-days" value="365">
+                </div>
+                <div class="form-group">
+                    <label>用途 / Usage</label>
+                    <select id="scsr-usage">
+                        <option value="server">服务器认证 / Server</option>
+                        <option value="client">客户端认证 / Client</option>
+                        <option value="codesigning">代码签名 / Code Signing</option>
+                        <option value="email">邮件保护 / Email</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="scsr-isca">
+                    <label for="scsr-isca">作为 CA 证书签发 / Sign as CA</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <button class="btn btn-primary" onclick="signCSR()">签发 / Sign</button>
+            </div>
+            <div id="scsr-result" class="result"></div>
+        </div>
+
+        <!-- 生成 CRL -->
+        <div id="gencrl" class="tab-content">
+            <h3 class="section-title">生成 CRL / Generate CRL</h3>
+            <div class="form-group">
+                <label>CA 证书 / CA Certificate <span class="label-hint">(PEM 格式)</span></label>
+                <textarea id="crl-cacert" placeholder="-----BEGIN CERTIFICATE-----..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>CA 私钥 / CA Private Key <span class="label-hint">(PEM 格式)</span></label>
+                <textarea id="crl-cakey" placeholder="-----BEGIN PRIVATE KEY-----..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>要吊销的证书 / Certificates to Revoke <span class="label-hint">(每个证书用空行分隔)</span></label>
+                <textarea id="crl-certs"
+                    placeholder="-----BEGIN CERTIFICATE-----...&#10;-----END CERTIFICATE-----&#10;&#10;-----BEGIN CERTIFICATE-----...&#10;-----END CERTIFICATE-----"
+                    style="min-height: 200px;"></textarea>
+            </div>
+            <div class="form-group">
+                <label>CRL 有效期(天) / CRL Valid Days</label>
+                <input type="number" id="crl-days" value="30">
+            </div>
+            <div class="form-group">
+                <button class="btn btn-primary" onclick="genCRL()">生成 / Generate</button>
+            </div>
+            <div id="crl-result" class="result"></div>
+        </div>
+
+        <!-- 查看 CRL -->
+        <div id="viewcrl" class="tab-content">
+            <h3 class="section-title">查看 CRL / View CRL</h3>
+            <div class="form-group">
+                <label>CRL / Certificate Revocation List <span class="label-hint">(PEM 格式)</span></label>
+                <textarea id="vcrl-crl" placeholder="-----BEGIN X509 CRL-----..."></textarea>
+            </div>
+            <div class="form-group">
+                <button class="btn btn-primary" onclick="viewCRL()">查看 / View</button>
+            </div>
+            <div id="vcrl-result" class="result"></div>
+        </div>
+
+        <!-- 检查吊销 -->
+        <div id="checkrevoked" class="tab-content">
+            <h3 class="section-title">检查证书吊销状态 / Check Certificate Revocation</h3>
+            <div class="form-group">
+                <label>证书 / Certificate <span class="label-hint">(PEM 格式)</span></label>
+                <textarea id="cr-cert" placeholder="-----BEGIN CERTIFICATE-----..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>CRL / Certificate Revocation List <span class="label-hint">(PEM 格式)</span></label>
+                <textarea id="cr-crl" placeholder="-----BEGIN X509 CRL-----..."></textarea>
+            </div>
+            <div class="form-group">
+                <button class="btn btn-primary" onclick="checkRevoked()">检查 / Check</button>
+            </div>
+            <div id="cr-result" class="result"></div>
         </div>
     </div>
 
@@ -885,6 +1071,236 @@
                 }
             } catch (e) {
                 showResult('vc-result', false, `<h4>❌ Error</h4><p>${e.message}</p>`);
+            }
+        }
+
+        // 查看证书信息
+        async function viewCertInfo() {
+            const data = {
+                cert: document.getElementById('ci-cert').value
+            };
+
+            try {
+                const res = await fetch('/api/certinfo', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+
+                if (result.success) {
+                    const info = result.data;
+                    showResult('ci-result', true, `
+                        <h4>✅ ${result.message}</h4>
+                        <div style="background: var(--input-bg); padding: 20px; border-radius: 12px; font-family: monospace;">
+                            <p><strong>序列号 / Serial Number:</strong> ${info.serialNumber}</p>
+                            <p><strong>主题 / Subject:</strong> ${info.subject}</p>
+                            <p><strong>颁发者 / Issuer:</strong> ${info.issuer}</p>
+                            <p><strong>生效时间 / Not Before:</strong> ${info.notBefore}</p>
+                            <p><strong>过期时间 / Not After:</strong> ${info.notAfter}</p>
+                            <p><strong>是否为 CA / Is CA:</strong> ${info.isCA ? '是 / Yes' : '否 / No'}</p>
+                            <p><strong>密钥算法 / Key Algorithm:</strong> ${info.keyAlgorithm}</p>
+                            ${info.dnsNames && info.dnsNames.length > 0 ? `<p><strong>DNS 名称 / DNS Names:</strong> ${info.dnsNames.join(', ')}</p>` : ''}
+                            ${info.ipAddresses && info.ipAddresses.length > 0 ? `<p><strong>IP 地址 / IP Addresses:</strong> ${info.ipAddresses.join(', ')}</p>` : ''}
+                            ${info.extKeyUsages && info.extKeyUsages.length > 0 ? `<p><strong>扩展密钥用途 / Ext Key Usages:</strong> ${info.extKeyUsages.join(', ')}</p>` : ''}
+                        </div>
+                    `);
+                } else {
+                    showResult('ci-result', false, `<h4>❌ Error</h4><p>${result.error}</p>`);
+                }
+            } catch (e) {
+                showResult('ci-result', false, `<h4>❌ Error</h4><p>${e.message}</p>`);
+            }
+        }
+
+        // 生成 CSR
+        async function genCSR() {
+            const data = {
+                algorithm: document.getElementById('csr-algorithm').value,
+                rsaBits: parseInt(document.getElementById('csr-rsabits').value),
+                ecdsaCurve: document.getElementById('csr-ecdsacurve').value,
+                commonName: document.getElementById('csr-cn').value,
+                org: document.getElementById('csr-org').value,
+                country: document.getElementById('csr-country').value,
+                state: document.getElementById('csr-state').value,
+                locality: document.getElementById('csr-locality').value,
+                dnsNames: document.getElementById('csr-dnsnames').value,
+                ipAddrs: document.getElementById('csr-ipaddrs').value
+            };
+
+            try {
+                const res = await fetch('/api/gencsr', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+
+                if (result.success) {
+                    showResult('csr-result', true, `
+                        <h4>✅ ${result.message}</h4>
+                        <p><strong>CSR:</strong> <button class="copy-btn" onclick="copyToClipboard(\`${result.data.csr.replace(/`/g, '\\`')}\`, this)">复制</button></p>
+                        <pre>${result.data.csr}</pre>
+                        <p><strong>私钥 / Private Key:</strong> <button class="copy-btn" onclick="copyToClipboard(\`${result.data.key.replace(/`/g, '\\`')}\`, this)">复制</button></p>
+                        <pre>${result.data.key}</pre>
+                    `);
+                } else {
+                    showResult('csr-result', false, `<h4>❌ Error</h4><p>${result.error}</p>`);
+                }
+            } catch (e) {
+                showResult('csr-result', false, `<h4>❌ Error</h4><p>${e.message}</p>`);
+            }
+        }
+
+        // 签发 CSR
+        async function signCSR() {
+            const data = {
+                caCert: document.getElementById('scsr-cacert').value,
+                caKey: document.getElementById('scsr-cakey').value,
+                csr: document.getElementById('scsr-csr').value,
+                days: parseInt(document.getElementById('scsr-days').value),
+                usage: document.getElementById('scsr-usage').value,
+                isCA: document.getElementById('scsr-isca').checked
+            };
+
+            try {
+                const res = await fetch('/api/signcsr', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+
+                if (result.success) {
+                    showResult('scsr-result', true, `
+                        <h4>✅ ${result.message}</h4>
+                        <p><strong>证书 / Certificate:</strong> <button class="copy-btn" onclick="copyToClipboard(\`${result.data.cert.replace(/`/g, '\\`')}\`, this)">复制</button></p>
+                        <pre>${result.data.cert}</pre>
+                    `);
+                } else {
+                    showResult('scsr-result', false, `<h4>❌ Error</h4><p>${result.error}</p>`);
+                }
+            } catch (e) {
+                showResult('scsr-result', false, `<h4>❌ Error</h4><p>${e.message}</p>`);
+            }
+        }
+
+        // 生成 CRL
+        async function genCRL() {
+            // 解析多个证书（用空行分隔）
+            const certsText = document.getElementById('crl-certs').value;
+            const revokedCerts = certsText.split(/\n\s*\n/).filter(c => c.trim());
+
+            const data = {
+                caCert: document.getElementById('crl-cacert').value,
+                caKey: document.getElementById('crl-cakey').value,
+                revokedCerts: revokedCerts,
+                days: parseInt(document.getElementById('crl-days').value)
+            };
+
+            try {
+                const res = await fetch('/api/gencrl', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+
+                if (result.success) {
+                    const revokedInfo = result.data.revokedSerials && result.data.revokedSerials.length > 0
+                        ? `<p><strong>已吊销序列号 / Revoked Serials:</strong> ${result.data.revokedSerials.join(', ')}</p>`
+                        : '';
+                    showResult('crl-result', true, `
+                        <h4>✅ ${result.message}</h4>
+                        <p><strong>本次更新 / This Update:</strong> ${result.data.thisUpdate}</p>
+                        <p><strong>下次更新 / Next Update:</strong> ${result.data.nextUpdate}</p>
+                        ${revokedInfo}
+                        <p><strong>CRL:</strong> <button class="copy-btn" onclick="copyToClipboard(\`${result.data.crl.replace(/`/g, '\\`')}\`, this)">复制</button></p>
+                        <pre>${result.data.crl}</pre>
+                    `);
+                } else {
+                    showResult('crl-result', false, `<h4>❌ Error</h4><p>${result.error}</p>`);
+                }
+            } catch (e) {
+                showResult('crl-result', false, `<h4>❌ Error</h4><p>${e.message}</p>`);
+            }
+        }
+
+        // 查看 CRL
+        async function viewCRL() {
+            const data = {
+                crl: document.getElementById('vcrl-crl').value
+            };
+
+            try {
+                const res = await fetch('/api/viewcrl', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+
+                if (result.success) {
+                    let certsList = '';
+                    if (result.data.revokedCerts && result.data.revokedCerts.length > 0) {
+                        certsList = '<table style="width:100%; margin-top:10px; border-collapse:collapse;">' +
+                            '<tr style="background:var(--primary); color:white;"><th style="padding:8px; text-align:left;">序号</th><th style="padding:8px; text-align:left;">序列号 / Serial</th><th style="padding:8px; text-align:left;">吊销时间 / Revoked At</th></tr>';
+                        result.data.revokedCerts.forEach((cert, idx) => {
+                            certsList += `<tr style="background:${idx % 2 === 0 ? 'var(--input-bg)' : 'white'}">
+                                <td style="padding:8px;">${idx + 1}</td>
+                                <td style="padding:8px; font-family:monospace;">${cert.serialNumber}</td>
+                                <td style="padding:8px;">${cert.revocationTime}</td>
+                            </tr>`;
+                        });
+                        certsList += '</table>';
+                    }
+
+                    showResult('vcrl-result', true, `
+                        <h4>✅ ${result.message}</h4>
+                        <p><strong>吊销证书数量 / Revoked Count:</strong> ${result.data.revokedCount}</p>
+                        ${certsList}
+                    `);
+                } else {
+                    showResult('vcrl-result', false, `<h4>❌ Error</h4><p>${result.error}</p>`);
+                }
+            } catch (e) {
+                showResult('vcrl-result', false, `<h4>❌ Error</h4><p>${e.message}</p>`);
+            }
+        }
+
+        // 检查吊销状态
+        async function checkRevoked() {
+            const data = {
+                cert: document.getElementById('cr-cert').value,
+                crl: document.getElementById('cr-crl').value
+            };
+
+            try {
+                const res = await fetch('/api/checkrevoked', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+
+                if (result.success) {
+                    const serialInfo = result.data.serialNumber ? `<p><strong>证书序列号 / Serial Number:</strong> ${result.data.serialNumber}</p>` : '';
+                    if (result.data.revoked) {
+                        showResult('cr-result', false, `
+                            <h4>⚠️ 证书已被吊销 / Certificate is REVOKED</h4>
+                            ${serialInfo}
+                        `);
+                    } else {
+                        showResult('cr-result', true, `
+                            <h4>✅ 证书未被吊销 / Certificate is NOT revoked</h4>
+                            ${serialInfo}
+                        `);
+                    }
+                } else {
+                    showResult('cr-result', false, `<h4>❌ Error</h4><p>${result.error}</p>`);
+                }
+            } catch (e) {
+                showResult('cr-result', false, `<h4>❌ Error</h4><p>${e.message}</p>`);
             }
         }
     </script>

@@ -18,6 +18,13 @@ import (
 	"github.com/jiaopengzi/cert/core"
 )
 
+// 默认值常量
+const (
+	defaultAlgorithm  = "RSA"
+	defaultECDSACurve = "P256"
+	defaultUsage      = "server"
+)
+
 // Response 通用响应结构
 type Response struct {
 	Success bool        `json:"success"`
@@ -84,7 +91,7 @@ func GenRootCAHandler(w http.ResponseWriter, r *http.Request) {
 
 	// 设置默认值
 	if req.Algorithm == "" {
-		req.Algorithm = "RSA"
+		req.Algorithm = defaultAlgorithm
 	}
 
 	if req.RSABits == 0 {
@@ -92,7 +99,7 @@ func GenRootCAHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if req.ECDSACurve == "" {
-		req.ECDSACurve = "P256"
+		req.ECDSACurve = defaultECDSACurve
 	}
 
 	if req.Days == 0 {
@@ -182,7 +189,7 @@ func SignCertHandler(w http.ResponseWriter, r *http.Request) {
 
 	// 设置默认值
 	if req.Algorithm == "" {
-		req.Algorithm = "RSA"
+		req.Algorithm = defaultAlgorithm
 	}
 
 	if req.RSABits == 0 {
@@ -190,7 +197,7 @@ func SignCertHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if req.ECDSACurve == "" {
-		req.ECDSACurve = "P256"
+		req.ECDSACurve = defaultECDSACurve
 	}
 
 	if req.Days == 0 {
@@ -202,7 +209,7 @@ func SignCertHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if req.Usage == "" {
-		req.Usage = "server"
+		req.Usage = defaultUsage
 	}
 
 	sanConfig := core.ParseSANFromStr(req.DNSNames, req.IPAddrs)
@@ -536,6 +543,393 @@ func parseUsage(usage string) core.CertUsage {
 	}
 }
 
+// CertInfoRequest 查看证书信息请求
+type CertInfoRequest struct {
+	Cert string `json:"cert"`
+}
+
+// CertInfoHandler 查看证书信息处理器
+func CertInfoHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		writeJSON(w, http.StatusMethodNotAllowed, Response{
+			Success: false,
+			Error:   "Method not allowed (方法不允许)",
+		})
+
+		return
+	}
+
+	var req CertInfoRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeJSON(w, http.StatusBadRequest, Response{
+			Success: false,
+			Error:   "Invalid request (无效的请求: )" + err.Error(),
+		})
+
+		return
+	}
+
+	info, err := core.GetCertInfo(req.Cert)
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, Response{
+			Success: false,
+			Error:   "Parse certificate failed (解析证书失败: )" + err.Error(),
+		})
+
+		return
+	}
+
+	writeJSON(w, http.StatusOK, Response{
+		Success: true,
+		Message: "Certificate info retrieved successfully (证书信息获取成功)",
+		Data: map[string]interface{}{
+			"serialNumber": info.SerialNumber,
+			"subject":      info.Subject,
+			"issuer":       info.Issuer,
+			"notBefore":    info.NotBefore.Format("2006-01-02 15:04:05"),
+			"notAfter":     info.NotAfter.Format("2006-01-02 15:04:05"),
+			"isCA":         info.IsCA,
+			"keyAlgorithm": info.KeyAlgorithm,
+			"dnsNames":     info.DNSNames,
+			"ipAddresses":  info.IPAddresses,
+			"extKeyUsages": info.ExtKeyUsages,
+		},
+	})
+}
+
+// GenCSRRequest 生成 CSR 请求
+type GenCSRRequest struct {
+	Algorithm  string `json:"algorithm"`
+	RSABits    int    `json:"rsaBits"`
+	ECDSACurve string `json:"ecdsaCurve"`
+	CommonName string `json:"commonName"`
+	Org        string `json:"org"`
+	Country    string `json:"country"`
+	State      string `json:"state"`
+	Locality   string `json:"locality"`
+	DNSNames   string `json:"dnsNames"`
+	IPAddrs    string `json:"ipAddrs"`
+}
+
+// GenCSRHandler 生成 CSR 处理器
+func GenCSRHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		writeJSON(w, http.StatusMethodNotAllowed, Response{
+			Success: false,
+			Error:   "Method not allowed (方法不允许)",
+		})
+
+		return
+	}
+
+	var req GenCSRRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeJSON(w, http.StatusBadRequest, Response{
+			Success: false,
+			Error:   "Invalid request (无效的请求: )" + err.Error(),
+		})
+
+		return
+	}
+
+	// 设置默认值
+	if req.Algorithm == "" {
+		req.Algorithm = defaultAlgorithm
+	}
+
+	if req.RSABits == 0 {
+		req.RSABits = 2048
+	}
+
+	if req.ECDSACurve == "" {
+		req.ECDSACurve = defaultECDSACurve
+	}
+
+	if req.CommonName == "" {
+		req.CommonName = "localhost"
+	}
+
+	sanConfig := core.ParseSANFromStr(req.DNSNames, req.IPAddrs)
+
+	cfg := &core.CSRConfig{
+		KeyAlgorithm: core.KeyAlgorithm(req.Algorithm),
+		RSAKeyBits:   req.RSABits,
+		ECDSACurve:   core.ECDSACurve(req.ECDSACurve),
+		SAN:          sanConfig,
+		Subject: core.Subject{
+			CommonName:   req.CommonName,
+			Organization: req.Org,
+			Country:      req.Country,
+			State:        req.State,
+			Locality:     req.Locality,
+		},
+	}
+
+	if err := core.GenerateCSR(cfg); err != nil {
+		writeJSON(w, http.StatusInternalServerError, Response{
+			Success: false,
+			Error:   "Generate CSR failed (生成 CSR 失败: )" + err.Error(),
+		})
+
+		return
+	}
+
+	writeJSON(w, http.StatusOK, Response{
+		Success: true,
+		Message: "CSR generated successfully (CSR 生成成功)",
+		Data: map[string]string{
+			"csr": cfg.CSR,
+			"key": cfg.Key,
+		},
+	})
+}
+
+// SignCSRRequest 签发 CSR 请求
+type SignCSRRequest struct {
+	CACert string `json:"caCert"`
+	CAKey  string `json:"caKey"`
+	CSR    string `json:"csr"`
+	Days   int    `json:"days"`
+	Usage  string `json:"usage"`
+	IsCA   bool   `json:"isCA"`
+}
+
+// SignCSRHandler 签发 CSR 处理器
+func SignCSRHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		writeJSON(w, http.StatusMethodNotAllowed, Response{
+			Success: false,
+			Error:   "Method not allowed (方法不允许)",
+		})
+
+		return
+	}
+
+	var req SignCSRRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeJSON(w, http.StatusBadRequest, Response{
+			Success: false,
+			Error:   "Invalid request (无效的请求: )" + err.Error(),
+		})
+
+		return
+	}
+
+	// 设置默认值
+	if req.Days == 0 {
+		req.Days = 365
+	}
+
+	if req.Usage == "" {
+		req.Usage = defaultUsage
+	}
+
+	usage := parseUsage(req.Usage)
+
+	cfg := &core.CSRSignConfig{
+		CACert:    req.CACert,
+		CAKey:     req.CAKey,
+		CSR:       req.CSR,
+		DaysValid: req.Days,
+		Usage:     usage,
+		IsCA:      req.IsCA,
+	}
+
+	if err := core.SignCSR(cfg); err != nil {
+		writeJSON(w, http.StatusInternalServerError, Response{
+			Success: false,
+			Error:   "Sign CSR failed (签发 CSR 失败: )" + err.Error(),
+		})
+
+		return
+	}
+
+	writeJSON(w, http.StatusOK, Response{
+		Success: true,
+		Message: "CSR signed successfully (CSR 签发成功)",
+		Data: map[string]string{
+			"cert": cfg.Cert,
+		},
+	})
+}
+
+// GenCRLRequest 生成 CRL 请求
+type GenCRLRequest struct {
+	CACert       string   `json:"caCert"`
+	CAKey        string   `json:"caKey"`
+	RevokedCerts []string `json:"revokedCerts"`
+	Days         int      `json:"days"`
+}
+
+// GenCRLHandler 生成 CRL 处理器
+func GenCRLHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		writeJSON(w, http.StatusMethodNotAllowed, Response{
+			Success: false,
+			Error:   "Method not allowed (方法不允许)",
+		})
+
+		return
+	}
+
+	var req GenCRLRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeJSON(w, http.StatusBadRequest, Response{
+			Success: false,
+			Error:   "Invalid request (无效的请求: )" + err.Error(),
+		})
+
+		return
+	}
+
+	// 设置默认值
+	if req.Days == 0 {
+		req.Days = 30
+	}
+
+	cfg := &core.CRLConfig{
+		CACert:       req.CACert,
+		CAKey:        req.CAKey,
+		RevokedCerts: req.RevokedCerts,
+		DaysValid:    req.Days,
+	}
+
+	if err := core.GenerateCRL(cfg); err != nil {
+		writeJSON(w, http.StatusInternalServerError, Response{
+			Success: false,
+			Error:   "Generate CRL failed (生成 CRL 失败: )" + err.Error(),
+		})
+
+		return
+	}
+
+	// 收集已吊销的序列号
+	var revokedSerials []string
+	for _, serial := range cfg.RevokedSerials {
+		revokedSerials = append(revokedSerials, serial.String())
+	}
+
+	writeJSON(w, http.StatusOK, Response{
+		Success: true,
+		Message: "CRL generated successfully (CRL 生成成功)",
+		Data: map[string]interface{}{
+			"crl":            cfg.CRL,
+			"thisUpdate":     cfg.ThisUpdate.Format("2006-01-02 15:04:05"),
+			"nextUpdate":     cfg.NextUpdate.Format("2006-01-02 15:04:05"),
+			"revokedSerials": revokedSerials,
+		},
+	})
+}
+
+// ViewCRLRequest 查看 CRL 请求
+type ViewCRLRequest struct {
+	CRL string `json:"crl"`
+}
+
+// ViewCRLHandler 查看 CRL 处理器
+func ViewCRLHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		writeJSON(w, http.StatusMethodNotAllowed, Response{
+			Success: false,
+			Error:   "Method not allowed (方法不允许)",
+		})
+
+		return
+	}
+
+	var req ViewCRLRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeJSON(w, http.StatusBadRequest, Response{
+			Success: false,
+			Error:   "Invalid request (无效的请求: )" + err.Error(),
+		})
+
+		return
+	}
+
+	revokedCerts, err := core.ParseCRL(req.CRL)
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, Response{
+			Success: false,
+			Error:   "Parse CRL failed (解析 CRL 失败: )" + err.Error(),
+		})
+
+		return
+	}
+
+	// 转换为 JSON 友好的格式
+	var certList []map[string]interface{}
+	for _, cert := range revokedCerts {
+		certList = append(certList, map[string]interface{}{
+			"serialNumber":   cert.SerialNumber.String(),
+			"revocationTime": cert.RevocationTime.Format("2006-01-02 15:04:05"),
+			"reason":         cert.Reason,
+		})
+	}
+
+	writeJSON(w, http.StatusOK, Response{
+		Success: true,
+		Message: "CRL parsed successfully (CRL 解析成功)",
+		Data: map[string]interface{}{
+			"revokedCount": len(revokedCerts),
+			"revokedCerts": certList,
+		},
+	})
+}
+
+// CheckRevokedRequest 检查证书吊销状态请求
+type CheckRevokedRequest struct {
+	Cert string `json:"cert"`
+	CRL  string `json:"crl"`
+}
+
+// CheckRevokedHandler 检查证书吊销状态处理器
+func CheckRevokedHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		writeJSON(w, http.StatusMethodNotAllowed, Response{
+			Success: false,
+			Error:   "Method not allowed (方法不允许)",
+		})
+
+		return
+	}
+
+	var req CheckRevokedRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeJSON(w, http.StatusBadRequest, Response{
+			Success: false,
+			Error:   "Invalid request (无效的请求: )" + err.Error(),
+		})
+
+		return
+	}
+
+	revoked, err := core.IsCertRevoked(req.Cert, req.CRL)
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, Response{
+			Success: false,
+			Error:   "Check revocation failed (检查吊销状态失败: )" + err.Error(),
+		})
+
+		return
+	}
+
+	// 获取证书信息
+	var serialNumber string
+	if info, infoErr := core.GetCertInfo(req.Cert); infoErr == nil {
+		serialNumber = info.SerialNumber
+	}
+
+	writeJSON(w, http.StatusOK, Response{
+		Success: true,
+		Message: "Revocation check completed (吊销状态检查完成)",
+		Data: map[string]interface{}{
+			"revoked":      revoked,
+			"serialNumber": serialNumber,
+		},
+	})
+}
+
 // StartServer 启动 Web 服务器
 func StartServer(host string, port int, staticDir, version string) error {
 	// 注册路由
@@ -548,11 +942,17 @@ func StartServer(host string, port int, staticDir, version string) error {
 	mux.HandleFunc("/api/version", VersionHandler(version))
 	mux.HandleFunc("/api/genrootca", GenRootCAHandler)
 	mux.HandleFunc("/api/signcert", SignCertHandler)
+	mux.HandleFunc("/api/certinfo", CertInfoHandler)
 	mux.HandleFunc("/api/sign", SignHandler)
 	mux.HandleFunc("/api/verify", VerifyHandler)
 	mux.HandleFunc("/api/encrypt", EncryptHandler)
 	mux.HandleFunc("/api/decrypt", DecryptHandler)
 	mux.HandleFunc("/api/validatechain", ValidateChainHandler)
+	mux.HandleFunc("/api/gencsr", GenCSRHandler)
+	mux.HandleFunc("/api/signcsr", SignCSRHandler)
+	mux.HandleFunc("/api/gencrl", GenCRLHandler)
+	mux.HandleFunc("/api/viewcrl", ViewCRLHandler)
+	mux.HandleFunc("/api/checkrevoked", CheckRevokedHandler)
 
 	addr := fmt.Sprintf("%s:%d", host, port)
 	fmt.Printf("Certificate Tool Web Server (证书工具 Web 服务)\n")
