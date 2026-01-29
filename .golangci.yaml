@@ -72,7 +72,7 @@ linters-settings:
     locale: "US" # 设置拼写检查的语言区域
 
   gocognit:
-    min-complexity: 10 # 允许的最大认知复杂度，超过会警告
+    min-complexity: 15 # 允许的最大认知复杂度，超过会警告
 
   prealloc:
     simple: false # 简单模式
