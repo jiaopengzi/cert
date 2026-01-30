@@ -58,7 +58,7 @@ func TestEncryptWithCert_DecryptWithKey_RSA(t *testing.T) {
 	}
 
 	// 使用私钥解密.
-	decrypted, err := DecryptWithKey(rsaCfg.Cert, rsaCfg.Key, ciphertext)
+	decrypted, err := DecryptWithKey(rsaCfg.Key, ciphertext)
 	if err != nil {
 		t.Fatalf("解密失败: %v", err)
 	}
@@ -109,7 +109,7 @@ func TestEncryptWithCert_DecryptWithKey_ECDSA(t *testing.T) {
 	}
 
 	// 使用私钥解密.
-	decrypted, err := DecryptWithKey(ecdsaCfg.Cert, ecdsaCfg.Key, ciphertext)
+	decrypted, err := DecryptWithKey(ecdsaCfg.Key, ciphertext)
 	if err != nil {
 		t.Fatalf("解密失败: %v", err)
 	}
@@ -158,7 +158,7 @@ func TestEncryptWithCert_DecryptWithKey_Ed25519(t *testing.T) {
 	}
 
 	// 使用私钥解密.
-	decrypted, err := DecryptWithKey(ed25519Cfg.Cert, ed25519Cfg.Key, ciphertext)
+	decrypted, err := DecryptWithKey(ed25519Cfg.Key, ciphertext)
 	if err != nil {
 		t.Fatalf("解密失败: %v", err)
 	}
@@ -189,7 +189,7 @@ func TestDecryptWithKey_InvalidKey(t *testing.T) {
 		t.Fatalf("生成 CA 证书失败: %v", err)
 	}
 
-	_, err := DecryptWithKey(caCfg.Cert, "invalid key", []byte{1, 2, 3})
+	_, err := DecryptWithKey("invalid key", []byte{1, 2, 3})
 	if err == nil {
 		t.Error("应该返回错误")
 	}

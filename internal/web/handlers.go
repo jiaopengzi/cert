@@ -409,7 +409,6 @@ func EncryptHandler(w http.ResponseWriter, r *http.Request) {
 
 // DecryptRequest 解密请求
 type DecryptRequest struct {
-	Cert string `json:"cert"`
 	Key  string `json:"key"`
 	Data string `json:"data"`
 }
@@ -445,7 +444,7 @@ func DecryptHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	plaintext, err := core.DecryptWithKey(req.Cert, req.Key, ciphertext)
+	plaintext, err := core.DecryptWithKey(req.Key, ciphertext)
 	if err != nil {
 		writeJSON(w, http.StatusInternalServerError, Response{
 			Success: false,

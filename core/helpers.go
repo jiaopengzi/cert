@@ -46,16 +46,46 @@ func EncryptWithCert(certPEM string, plaintext []byte) (ciphertext []byte, nonce
 	return ciphertext, nonce, nil
 }
 
-// DecryptWithKey 使用证书私钥解密数据(混合解密).
-// certPEM: 证书 PEM 格式字符串.
+// detectKeyAlgorithm 根据私钥类型检测密钥算法.
+// privateKey: 私钥对象.
+// 返回对应的 KeyAlgorithm, 如果不支持则返回错误.
+func detectKeyAlgorithm(privateKey any) (KeyAlgorithm, error) {
+	keyTypeName := fmt.Sprintf("%T", privateKey)
+
+	switch {
+	case strings.Contains(keyTypeName, "rsa"):
+		return KeyAlgorithmRSA, nil
+	case strings.Contains(keyTypeName, "ecdsa"):
+		return KeyAlgorithmECDSA, nil
+	case strings.Contains(keyTypeName, "ed25519"):
+		return KeyAlgorithmEd25519, nil
+	default:
+		return "", errors.New("unsupported key algorithm")
+	}
+}
+
+// DecryptWithKey 使用私钥解密数据(混合解密).
 // keyPEM: 私钥 PEM 格式字符串.
 // ciphertext: 待解密的密文.
 // 返回解密后的明文.
-func DecryptWithKey(certPEM, keyPEM string, ciphertext []byte) ([]byte, error) {
-	// 创建包含私钥的证书对象.
-	certificate, err := NewCertificate(certPEM, keyPEM)
+func DecryptWithKey(keyPEM string, ciphertext []byte) ([]byte, error) {
+	// 解析私钥获取算法类型.
+	privateKey, err := ParsePrivateKey(keyPEM)
 	if err != nil {
-		return nil, fmt.Errorf("parse certificate and key: %w", err)
+		return nil, fmt.Errorf("parse private key: %w", err)
+	}
+
+	// 检测密钥算法.
+	keyAlgorithm, err := detectKeyAlgorithm(privateKey)
+	if err != nil {
+		return nil, err
+	}
+
+	// 创建临时证书对象(仅用于解密).
+	certificate := &Certificate{
+		KeyPEM:       keyPEM,
+		privateKey:   privateKey,
+		KeyAlgorithm: keyAlgorithm,
 	}
 
 	// 获取加密操作器.
@@ -84,24 +114,17 @@ func SignData(keyPEM string, data []byte) ([]byte, error) {
 		return nil, fmt.Errorf("parse private key: %w", err)
 	}
 
-	// 创建临时证书对象(仅用于签名).
-	certificate := &Certificate{
-		KeyPEM:     keyPEM,
-		privateKey: privateKey,
+	// 检测密钥算法.
+	keyAlgorithm, err := detectKeyAlgorithm(privateKey)
+	if err != nil {
+		return nil, err
 	}
 
-	// 使用类型名称检测密钥类型.
-	keyTypeName := fmt.Sprintf("%T", privateKey)
-
-	switch {
-	case strings.Contains(keyTypeName, "rsa"):
-		certificate.KeyAlgorithm = KeyAlgorithmRSA
-	case strings.Contains(keyTypeName, "ecdsa"):
-		certificate.KeyAlgorithm = KeyAlgorithmECDSA
-	case strings.Contains(keyTypeName, "ed25519"):
-		certificate.KeyAlgorithm = KeyAlgorithmEd25519
-	default:
-		return nil, errors.New("unsupported key algorithm")
+	// 创建临时证书对象(仅用于签名).
+	certificate := &Certificate{
+		KeyPEM:       keyPEM,
+		privateKey:   privateKey,
+		KeyAlgorithm: keyAlgorithm,
 	}
 
 	// 获取加密操作器.

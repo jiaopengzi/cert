@@ -45,11 +45,6 @@ func DecryptCmd() *cli.Command {
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			certPEM, err := os.ReadFile(cmd.String("cert"))
-			if err != nil {
-				return fmt.Errorf("read certificate failed (读取证书失败: %w)", err)
-			}
-
 			keyPEM, err := os.ReadFile(cmd.String("key"))
 			if err != nil {
 				return fmt.Errorf("read private key failed (读取私钥失败: %w)", err)
@@ -61,7 +56,7 @@ func DecryptCmd() *cli.Command {
 				return fmt.Errorf("decode ciphertext failed (解码密文失败: %w)", err)
 			}
 
-			plaintext, err := core.DecryptWithKey(string(certPEM), string(keyPEM), ciphertext)
+			plaintext, err := core.DecryptWithKey(string(keyPEM), ciphertext)
 			if err != nil {
 				return fmt.Errorf("decrypt failed (解密失败: %w)", err)
 			}

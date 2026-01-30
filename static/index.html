@@ -578,11 +578,6 @@
         <div id="decrypt" class="tab-content">
             <h3 class="section-title">解密 / Decrypt</h3>
             <div class="form-group">
-                <label><span style="color: red;">*</span> 证书 / Certificate <span class="label-hint">(PEM
-                        格式)</span></label>
-                <textarea id="decrypt-cert" placeholder="-----BEGIN CERTIFICATE-----..."></textarea>
-            </div>
-            <div class="form-group">
                 <label><span style="color: red;">*</span> 私钥 / Private Key <span class="label-hint">(PEM
                         格式)</span></label>
                 <textarea id="decrypt-key" placeholder="-----BEGIN PRIVATE KEY-----..."></textarea>
@@ -1052,7 +1047,6 @@
         // 解密
         async function decryptData() {
             const data = {
-                cert: document.getElementById('decrypt-cert').value,
                 key: document.getElementById('decrypt-key').value,
                 data: document.getElementById('decrypt-data').value
             };

@@ -355,7 +355,7 @@ func TestEncryptAndDecryptCmd(t *testing.T) {
 	}
 
 	// 解密
-	decrypted, err := core.DecryptWithKey(string(certPEM), string(keyPEM), ciphertext)
+	decrypted, err := core.DecryptWithKey(string(keyPEM), ciphertext)
 	if err != nil {
 		t.Fatalf("Decrypt failed: %v", err)
 	}
