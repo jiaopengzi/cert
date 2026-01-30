@@ -8,7 +8,7 @@
 
 package core
 
-import utils "github.com/jiaopengzi/go-utils"
+import "github.com/jiaopengzi/cert/utils"
 
 // ParseSANFromStr 从逗号分隔的字符串解析 SAN 配置.
 func ParseSANFromStr(dnsNames, ipAddrs string) SANConfig {

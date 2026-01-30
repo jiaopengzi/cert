@@ -24,6 +24,7 @@
     },
     "cSpell.words": [
         "addrs",
+        "Basepoint",
         "cakey",
         "certinfo",
         "checkrevoked",
@@ -46,6 +47,7 @@
         "isca",
         "LASTEXITCODE",
         "ldflags",
+        "OAEP",
         "PKCS",
         "preldhash",
         "procps",

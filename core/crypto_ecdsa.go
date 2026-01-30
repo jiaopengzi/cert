@@ -16,7 +16,7 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/jiaopengzi/go-utils"
+	"github.com/jiaopengzi/cert/utils"
 )
 
 // ECDSACryptoOperator ECDSA 证书加密操作器.

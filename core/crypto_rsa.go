@@ -16,7 +16,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/jiaopengzi/go-utils"
+	"github.com/jiaopengzi/cert/utils"
 )
 
 // RSACryptoOperator RSA 证书加密操作器.
