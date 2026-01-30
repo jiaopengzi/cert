@@ -97,17 +97,17 @@ func GenRootCACmd() *cli.Command {
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			days := int(cmd.Int("days"))
+			days := cmd.Int("days")
 			if days <= 0 {
 				return fmt.Errorf("days must be greater than 0 (有效期必须大于 0)")
 			}
 
 			cfg := &core.CACertConfig{
 				KeyAlgorithm: core.KeyAlgorithm(cmd.String("algorithm")),
-				RSAKeyBits:   int(cmd.Int("rsa-bits")),
+				RSAKeyBits:   cmd.Int("rsa-bits"),
 				ECDSACurve:   core.ECDSACurve(cmd.String("ecdsa-curve")),
-				DaysValid:    int(cmd.Int("days")),
-				MaxPathLen:   int(cmd.Int("max-path-len")),
+				DaysValid:    cmd.Int("days"),
+				MaxPathLen:   cmd.Int("max-path-len"),
 				PathLenZero:  cmd.Bool("path-len-zero"),
 				Subject: core.Subject{
 					CommonName:   cmd.String("cn"),

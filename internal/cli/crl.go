@@ -70,12 +70,12 @@ func genCRLFlags() []cli.Flag {
 
 // genCRLAction 生成 CRL 的公共 action 函数
 func genCRLAction(_ context.Context, cmd *cli.Command) error {
-	days := int(cmd.Int("days"))
+	days := cmd.Int("days")
 	if days <= 0 {
 		return fmt.Errorf("days must be greater than 0 (CRL 有效期必须大于 0)")
 	}
 
-	pruneDays := int(cmd.Int("prune-days"))
+	pruneDays := cmd.Int("prune-days")
 	if pruneDays < 0 {
 		return fmt.Errorf("prune-days must be greater than or equal to 0 (剔除天数必须大于等于 0)")
 	}
@@ -120,8 +120,8 @@ func genCRLAction(_ context.Context, cmd *cli.Command) error {
 		RevokedCerts:   revokedCerts,
 		ExistingCRL:    existingCRL,
 		SkipExpired:    cmd.Bool("skip-expired"),
-		PruneAfterDays: int(cmd.Int("prune-days")),
-		DaysValid:      int(cmd.Int("days")),
+		PruneAfterDays: cmd.Int("prune-days"),
+		DaysValid:      cmd.Int("days"),
 	}
 
 	if err := core.GenerateCRL(cfg); err != nil {

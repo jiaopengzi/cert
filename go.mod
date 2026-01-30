@@ -4,7 +4,7 @@ go 1.25.6
 
 require (
 	filippo.io/edwards25519 v1.1.0
-	github.com/urfave/cli/v3 v3.0.0-beta1
+	github.com/urfave/cli/v3 v3.4.1
 	golang.org/x/crypto v0.47.0
 )
 

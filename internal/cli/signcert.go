@@ -109,7 +109,7 @@ func SignCertCmd() *cli.Command {
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			days := int(cmd.Int("days"))
+			days := cmd.Int("days")
 			if days <= 0 {
 				return fmt.Errorf("days must be greater than 0 (有效期必须大于 0)")
 			}
@@ -133,9 +133,9 @@ func SignCertCmd() *cli.Command {
 				CAKey:        string(caKey),
 				Name:         cmd.String("cn"),
 				KeyAlgorithm: core.KeyAlgorithm(cmd.String("algorithm")),
-				RSAKeyBits:   int(cmd.Int("rsa-bits")),
+				RSAKeyBits:   cmd.Int("rsa-bits"),
 				ECDSACurve:   core.ECDSACurve(cmd.String("ecdsa-curve")),
-				DaysValid:    int(cmd.Int("days")),
+				DaysValid:    cmd.Int("days"),
 				SAN:          sanConfig,
 				Usage:        usage,
 				IsCA:         cmd.Bool("is-ca"),
