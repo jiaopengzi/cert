@@ -14,8 +14,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/jiaopengzi/cert/core"
 	"github.com/urfave/cli/v3"
+
+	"github.com/jiaopengzi/cert/core"
 )
 
 // readInputData 读取签名/验签的输入数据, 支持字符串和文件两种方式.

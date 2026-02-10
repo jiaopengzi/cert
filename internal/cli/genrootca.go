@@ -13,8 +13,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/jiaopengzi/cert/core"
 	"github.com/urfave/cli/v3"
+
+	"github.com/jiaopengzi/cert/core"
 )
 
 // GenRootCACmd 返回生成根证书命令

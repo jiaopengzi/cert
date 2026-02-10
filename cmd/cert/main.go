@@ -14,9 +14,10 @@ import (
 	"os"
 	"runtime/debug"
 
+	ucli "github.com/urfave/cli/v3"
+
 	"github.com/jiaopengzi/cert/internal/cli"
 	"github.com/jiaopengzi/cert/internal/web"
-	ucli "github.com/urfave/cli/v3"
 )
 
 // Version 软件版本号，构建时通过 ldflags 注入

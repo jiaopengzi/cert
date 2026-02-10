@@ -14,8 +14,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/jiaopengzi/cert/core"
 	"github.com/urfave/cli/v3"
+
+	"github.com/jiaopengzi/cert/core"
 )
 
 // VerifyCmd 返回验签命令

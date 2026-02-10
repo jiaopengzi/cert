@@ -17,8 +17,9 @@ import (
 	"io"
 
 	"filippo.io/edwards25519"
-	"github.com/jiaopengzi/cert/utils"
 	"golang.org/x/crypto/curve25519"
+
+	"github.com/jiaopengzi/cert/utils"
 )
 
 // Ed25519CryptoOperator Ed25519 证书加密操作器.

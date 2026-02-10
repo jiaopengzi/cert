@@ -13,8 +13,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/jiaopengzi/cert/core"
 	"github.com/urfave/cli/v3"
+
+	"github.com/jiaopengzi/cert/core"
 )
 
 // genCSRFlags 返回生成 CSR 通用 flags

@@ -13,8 +13,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/jiaopengzi/cert/core"
 	"github.com/urfave/cli/v3"
+
+	"github.com/jiaopengzi/cert/core"
 )
 
 // genCRLFlags 返回生成 CRL 通用 flags
