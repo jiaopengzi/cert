@@ -32,10 +32,14 @@ func VerifyCmd() *cli.Command {
 				Required: true,
 			},
 			&cli.StringFlag{
-				Name:     "data",
-				Aliases:  []string{"d"},
-				Usage:    "Original data string (原始数据字符串)",
-				Required: true,
+				Name:    "data",
+				Aliases: []string{"d"},
+				Usage:   "Original data string (原始数据字符串)",
+			},
+			&cli.StringFlag{
+				Name:    "file",
+				Aliases: []string{"f"},
+				Usage:   "Original file path (原始文件路径, 支持二进制文件)",
 			},
 			&cli.StringFlag{
 				Name:     "signature",
@@ -45,20 +49,23 @@ func VerifyCmd() *cli.Command {
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			certPEM, err := os.ReadFile(cmd.String("cert"))
+			data, err := readInputData(cmd.String("data"), cmd.String("file"))
 			if err != nil {
-				return fmt.Errorf("read certificate failed (读取证书失败: %w)", err)
+				return err
 			}
 
-			data := []byte(cmd.String("data"))
+			certPEM, err := os.ReadFile(cmd.String("cert"))
+			if err != nil {
+				return fmt.Errorf("read certificate failed (读取证书失败): %w", err)
+			}
 
 			signature, err := base64.StdEncoding.DecodeString(cmd.String("signature"))
 			if err != nil {
-				return fmt.Errorf("decode signature failed (解码签名失败: %w)", err)
+				return fmt.Errorf("decode signature failed (解码签名失败): %w", err)
 			}
 
 			if err := core.VerifySignature(string(certPEM), data, signature); err != nil {
-				fmt.Printf("Signature verification FAILED (签名验证失败: %v)", err)
+				fmt.Printf("Signature verification FAILED (签名验证失败): %v", err)
 				return nil
 			}
 

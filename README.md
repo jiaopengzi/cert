@@ -12,7 +12,7 @@
 - **生成根证书** - 支持 RSA、ECDSA、Ed25519 三种算法
 - **签发证书** - 使用 CA 证书签发服务器/客户端/代码签名/邮件证书
 - **查看证书信息** - 解析并显示证书的详细信息
-- **签名验签** - 使用证书私钥对数据签名和验证
+- **签名验签** - 使用私钥对数据签名，支持字符串和二进制文件（如软件本体）
 - **加密解密** - 使用证书公钥加密和私钥解密
 - **证书链验证** - 验证证书链的有效性
 - **CSR 管理** - 生成证书签名请求（CSR）并签发
@@ -89,11 +89,17 @@ cert signcert --ca-cert root.pem --ca-key root_key.pem \
 ### 签名和验签
 
 ```bash
-# 对数据签名
-cert sign --cert cert.pem --key cert_key.pem --data "Hello, World!"
+# 对字符串签名（仅需私钥）
+cert sign --key cert_key.pem --data "Hello, World!"
 
-# 验证签名
+# 对二进制文件签名（如软件本体）
+cert sign --key cert_key.pem --file app.exe
+
+# 验证字符串签名
 cert verify --cert cert.pem --data "Hello, World!" --signature "BASE64_SIGNATURE"
+
+# 验证文件签名
+cert verify --cert cert.pem --file app.exe --signature "BASE64_SIGNATURE"
 ```
 
 ### 加密和解密
@@ -183,8 +189,8 @@ cert web -p 8080 -s ./static
 | `genrootca` | `grc` | 生成根证书和私钥 |
 | `signcert` | `sc` | 使用 CA 签发新证书 |
 | `certinfo` | `ci` | 查看证书信息 |
-| `sign` | `s` | 使用证书私钥对字符串加签 |
-| `verify` | `vf` | 使用证书验证签名 |
+| `sign` | `s` | 使用私钥对数据加签（支持字符串和文件） |
+| `verify` | `vf` | 使用证书验证签名（支持字符串和文件） |
 | `encrypt` | `enc` | 使用证书公钥加密字符串 |
 | `decrypt` | `dec` | 使用证书私钥解密字符串 |
 | `validatechain` | `vc` | 验证证书链 |
@@ -305,7 +311,7 @@ Web 界面提供了所有 CLI 功能的图形化操作，支持中英文切换�
 - **生成根证书** - 配置算法、有效期、主题信息
 - **签发证书** - 上传 CA 证书签发新证书
 - **查看证书信息** - 解析并显示证书详情
-- **签名/验签** - 对文本数据进行签名和验证
+- **签名/验签** - 对文本或文件数据进行签名和验证
 - **加密/解密** - 使用证书加密解密数据
 - **证书链验证** - 验证证书的有效性
 - **CSR 管理** - 生成 CSR 和签发 CSR
