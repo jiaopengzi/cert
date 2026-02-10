@@ -5,6 +5,18 @@
 该格式基于 [Keep a Changelog](https://keepachangelog.com),
 本项目遵循 [语义化版本控制](https://semver.org/spec/v2.0.0.html)。
 
+<a name="v0.4.0"></a>
+
+## [v0.4.0] - 2026-02-10
+
+### ✨ Feat
+
+- 签名支持文件和字符串
+
+### 📦 Build
+
+- 统一 lint
+
 <a name="v0.3.1"></a>
 
 ## [v0.3.1] - 2026-01-30
@@ -105,6 +117,7 @@
     - RESTful API 接口
     - 响应式 HTML 前端界面
 
+[v0.4.0]: https://github.com/jiaopengzi/cert/compare/v0.3.1...v0.4.0
 [v0.3.1]: https://github.com/jiaopengzi/cert/compare/v0.3.0...v0.3.1
 [v0.3.0]: https://github.com/jiaopengzi/cert/compare/v0.2.1...v0.3.0
 [v0.2.1]: https://github.com/jiaopengzi/cert/compare/v0.2.0...v0.2.1
