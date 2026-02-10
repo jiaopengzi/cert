@@ -222,9 +222,9 @@ func ed25519PrivateKeyToX25519(ed25519PrivKey ed25519.PrivateKey) ([]byte, error
 	hash := sha512.Sum512(seed)
 
 	// 按照 X25519 规范进行钳制(clamping).
-	hash[0] &= 248
-	hash[31] &= 127
-	hash[31] |= 64
+	hash[0] &= 248  //nolint:gosec // G602 false positive: sha512.Sum512 returns [64]byte, index always valid.
+	hash[31] &= 127 //nolint:gosec // G602 false positive: sha512.Sum512 returns [64]byte, index always valid.
+	hash[31] |= 64  //nolint:gosec // G602 false positive: sha512.Sum512 returns [64]byte, index always valid.
 
 	return hash[:32], nil
 }

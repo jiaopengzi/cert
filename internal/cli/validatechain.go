@@ -102,7 +102,7 @@ func readIntermediateCAs(paths []string) ([]string, error) {
 	var intermediateCAs []string
 
 	for _, path := range paths {
-		interCert, err := os.ReadFile(path)
+		interCert, err := os.ReadFile(path) //nolint:gosec // G304: file path is user-provided CLI input
 		if err != nil {
 			return nil, fmt.Errorf("read intermediate certificate failed (读取中间证书失败: %w)", err)
 		}

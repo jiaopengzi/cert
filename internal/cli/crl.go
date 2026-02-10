@@ -94,7 +94,7 @@ func genCRLAction(_ context.Context, cmd *cli.Command) error {
 	var revokedCerts []string
 
 	for _, certPath := range cmd.StringSlice("revoke") {
-		certData, readErr := os.ReadFile(certPath)
+		certData, readErr := os.ReadFile(certPath) //nolint:gosec // G304: file path is user-provided CLI input
 		if readErr != nil {
 			return fmt.Errorf("read revoked certificate %s failed (读取吊销证书失败): %w", certPath, readErr)
 		}
@@ -106,7 +106,7 @@ func genCRLAction(_ context.Context, cmd *cli.Command) error {
 	var existingCRL string
 
 	if existingPath := cmd.String("existing"); existingPath != "" {
-		existingData, readErr := os.ReadFile(existingPath)
+		existingData, readErr := os.ReadFile(existingPath) //nolint:gosec // G304: file path is user-provided CLI input
 		if readErr != nil {
 			return fmt.Errorf("read existing CRL %s failed (读取现有 CRL 失败): %w", existingPath, readErr)
 		}

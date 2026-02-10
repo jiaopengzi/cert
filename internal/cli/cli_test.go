@@ -293,6 +293,272 @@ func TestSignAndVerifyCmd_Ed25519(t *testing.T) {
 	testSignAndVerify(t, "Ed25519")
 }
 
+// testSignAndVerifyCLI 辅助函数：通过 CLI 命令测试签名和验签流程
+func testSignAndVerifyCLI(t *testing.T, algorithm string) {
+	t.Helper()
+	tmpDir := t.TempDir()
+
+	// 生成CA
+	caCertPath := filepath.Join(tmpDir, "ca.pem")
+	caKeyPath := filepath.Join(tmpDir, "ca_key.pem")
+
+	genApp := &cli.Command{
+		Commands: []*cli.Command{GenRootCACmd()},
+	}
+	genArgs := []string{"test", "genrootca",
+		"--cert-out", caCertPath,
+		"--key-out", caKeyPath,
+		"--algorithm", algorithm,
+		"--cn", "Test CA",
+	}
+	if err := genApp.Run(context.Background(), genArgs); err != nil {
+		t.Fatalf("Generate CA failed: %v", err)
+	}
+
+	// 签发证书
+	certPath := filepath.Join(tmpDir, "cert.pem")
+	keyPath := filepath.Join(tmpDir, "cert_key.pem")
+
+	signCertApp := &cli.Command{
+		Commands: []*cli.Command{SignCertCmd()},
+	}
+	signCertArgs := []string{"test", "signcert",
+		"--ca-cert", caCertPath,
+		"--ca-key", caKeyPath,
+		"--cert-out", certPath,
+		"--key-out", keyPath,
+		"--algorithm", algorithm,
+		"--cn", "Test Cert",
+	}
+	if err := signCertApp.Run(context.Background(), signCertArgs); err != nil {
+		t.Fatalf("Sign cert failed: %v", err)
+	}
+
+	keyPEM, err := os.ReadFile(keyPath)
+	if err != nil {
+		t.Fatalf("Read key failed: %v", err)
+	}
+
+	certPEM, err := os.ReadFile(certPath)
+	if err != nil {
+		t.Fatalf("Read cert failed: %v", err)
+	}
+
+	// 测试 1: 使用 --data 签名字符串
+	testData := []byte("Hello, World!")
+	signature, err := core.SignData(string(keyPEM), testData)
+	if err != nil {
+		t.Fatalf("Sign string data failed: %v", err)
+	}
+	if err := core.VerifySignature(string(certPEM), testData, signature); err != nil {
+		t.Fatalf("Verify string signature failed: %v", err)
+	}
+
+	// 测试 2: 使用 --file 签名二进制文件
+	binaryFile := filepath.Join(tmpDir, "testfile.bin")
+	binaryData := []byte{0x00, 0x01, 0x02, 0xFF, 0xFE, 0xFD, 0x89, 0x50, 0x4E, 0x47}
+	if err := os.WriteFile(binaryFile, binaryData, 0644); err != nil {
+		t.Fatalf("Write binary file failed: %v", err)
+	}
+
+	signatureFile, err := core.SignData(string(keyPEM), binaryData)
+	if err != nil {
+		t.Fatalf("Sign binary data failed: %v", err)
+	}
+	if err := core.VerifySignature(string(certPEM), binaryData, signatureFile); err != nil {
+		t.Fatalf("Verify binary signature failed: %v", err)
+	}
+}
+
+// TestSignAndVerifyCLI_RSA 测试通过 CLI 使用 RSA 签名和验签（含文件签名）
+func TestSignAndVerifyCLI_RSA(t *testing.T) {
+	testSignAndVerifyCLI(t, "RSA")
+}
+
+// TestSignAndVerifyCLI_ECDSA 测试通过 CLI 使用 ECDSA 签名和验签（含文件签名）
+func TestSignAndVerifyCLI_ECDSA(t *testing.T) {
+	testSignAndVerifyCLI(t, "ECDSA")
+}
+
+// TestSignAndVerifyCLI_Ed25519 测试通过 CLI 使用 Ed25519 签名和验签（含文件签名）
+func TestSignAndVerifyCLI_Ed25519(t *testing.T) {
+	testSignAndVerifyCLI(t, "Ed25519")
+}
+
+// TestSignCmd_NoDataNoFile 测试签名命令未指定 --data 和 --file 时应报错
+func TestSignCmd_NoDataNoFile(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// 生成密钥
+	caKeyPath := filepath.Join(tmpDir, "ca_key.pem")
+	caCertPath := filepath.Join(tmpDir, "ca.pem")
+
+	genApp := &cli.Command{
+		Commands: []*cli.Command{GenRootCACmd()},
+	}
+	genArgs := []string{"test", "genrootca",
+		"--cert-out", caCertPath,
+		"--key-out", caKeyPath,
+		"--cn", "Test CA",
+	}
+	if err := genApp.Run(context.Background(), genArgs); err != nil {
+		t.Fatalf("Generate CA failed: %v", err)
+	}
+
+	signApp := &cli.Command{
+		Commands: []*cli.Command{SignCmd()},
+	}
+	signArgs := []string{"test", "sign",
+		"--key", caKeyPath,
+	}
+	if err := signApp.Run(context.Background(), signArgs); err == nil {
+		t.Fatal("Expected error when neither --data nor --file is specified")
+	}
+}
+
+// TestSignCmd_BothDataAndFile 测试签名命令同时指定 --data 和 --file 时应报错
+func TestSignCmd_BothDataAndFile(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	caKeyPath := filepath.Join(tmpDir, "ca_key.pem")
+	caCertPath := filepath.Join(tmpDir, "ca.pem")
+
+	genApp := &cli.Command{
+		Commands: []*cli.Command{GenRootCACmd()},
+	}
+	genArgs := []string{"test", "genrootca",
+		"--cert-out", caCertPath,
+		"--key-out", caKeyPath,
+		"--cn", "Test CA",
+	}
+	if err := genApp.Run(context.Background(), genArgs); err != nil {
+		t.Fatalf("Generate CA failed: %v", err)
+	}
+
+	testFile := filepath.Join(tmpDir, "test.txt")
+	if err := os.WriteFile(testFile, []byte("test"), 0644); err != nil {
+		t.Fatalf("Write test file failed: %v", err)
+	}
+
+	signApp := &cli.Command{
+		Commands: []*cli.Command{SignCmd()},
+	}
+	signArgs := []string{"test", "sign",
+		"--key", caKeyPath,
+		"--data", "hello",
+		"--file", testFile,
+	}
+	if err := signApp.Run(context.Background(), signArgs); err == nil {
+		t.Fatal("Expected error when both --data and --file are specified")
+	}
+}
+
+// TestSignCmd_FileSign 测试通过 CLI 签名命令签名文件
+func TestSignCmd_FileSign(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// 生成密钥
+	caCertPath := filepath.Join(tmpDir, "ca.pem")
+	caKeyPath := filepath.Join(tmpDir, "ca_key.pem")
+
+	genApp := &cli.Command{
+		Commands: []*cli.Command{GenRootCACmd()},
+	}
+	genArgs := []string{"test", "genrootca",
+		"--cert-out", caCertPath,
+		"--key-out", caKeyPath,
+		"--cn", "Test CA",
+	}
+	if err := genApp.Run(context.Background(), genArgs); err != nil {
+		t.Fatalf("Generate CA failed: %v", err)
+	}
+
+	// 创建二进制测试文件
+	testFile := filepath.Join(tmpDir, "app.exe")
+	binaryData := make([]byte, 1024)
+	for i := range binaryData {
+		binaryData[i] = byte(i % 256)
+	}
+	if err := os.WriteFile(testFile, binaryData, 0644); err != nil {
+		t.Fatalf("Write binary file failed: %v", err)
+	}
+
+	// 使用 CLI 签名文件
+	signApp := &cli.Command{
+		Commands: []*cli.Command{SignCmd()},
+	}
+	signArgs := []string{"test", "sign",
+		"--key", caKeyPath,
+		"--file", testFile,
+	}
+	if err := signApp.Run(context.Background(), signArgs); err != nil {
+		t.Fatalf("SignCmd with --file failed: %v", err)
+	}
+}
+
+// TestSignCmd_DataSign 测试通过 CLI 签名命令签名字符串
+func TestSignCmd_DataSign(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	caCertPath := filepath.Join(tmpDir, "ca.pem")
+	caKeyPath := filepath.Join(tmpDir, "ca_key.pem")
+
+	genApp := &cli.Command{
+		Commands: []*cli.Command{GenRootCACmd()},
+	}
+	genArgs := []string{"test", "genrootca",
+		"--cert-out", caCertPath,
+		"--key-out", caKeyPath,
+		"--cn", "Test CA",
+	}
+	if err := genApp.Run(context.Background(), genArgs); err != nil {
+		t.Fatalf("Generate CA failed: %v", err)
+	}
+
+	// 使用 CLI 签名字符串（不需要 --cert）
+	signApp := &cli.Command{
+		Commands: []*cli.Command{SignCmd()},
+	}
+	signArgs := []string{"test", "sign",
+		"--key", caKeyPath,
+		"--data", "Hello, World!",
+	}
+	if err := signApp.Run(context.Background(), signArgs); err != nil {
+		t.Fatalf("SignCmd with --data failed: %v", err)
+	}
+}
+
+// TestVerifyCmd_NoDataNoFile 测试验签命令未指定 --data 和 --file 时应报错
+func TestVerifyCmd_NoDataNoFile(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	caCertPath := filepath.Join(tmpDir, "ca.pem")
+	caKeyPath := filepath.Join(tmpDir, "ca_key.pem")
+
+	genApp := &cli.Command{
+		Commands: []*cli.Command{GenRootCACmd()},
+	}
+	genArgs := []string{"test", "genrootca",
+		"--cert-out", caCertPath,
+		"--key-out", caKeyPath,
+		"--cn", "Test CA",
+	}
+	if err := genApp.Run(context.Background(), genArgs); err != nil {
+		t.Fatalf("Generate CA failed: %v", err)
+	}
+
+	verifyApp := &cli.Command{
+		Commands: []*cli.Command{VerifyCmd()},
+	}
+	verifyArgs := []string{"test", "verify",
+		"--cert", caCertPath,
+		"--signature", "dGVzdA==",
+	}
+	if err := verifyApp.Run(context.Background(), verifyArgs); err == nil {
+		t.Fatal("Expected error when neither --data nor --file is specified")
+	}
+}
+
 // TestEncryptAndDecryptCmd 测试加密和解密(仅RSA支持)
 func TestEncryptAndDecryptCmd(t *testing.T) {
 	tmpDir := t.TempDir()
