@@ -81,7 +81,7 @@ formatters:
       simplify: true # 自动简化代码格式
     goimports:
       local-prefixes:
-        - "github.com/jiaopengzi/zap-smap" # 本地包前缀
+        - "github.com/jiaopengzi/cert" # 本地包前缀
 
 issues:
   fix: true # 自动修复部分问题
