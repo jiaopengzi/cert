@@ -161,6 +161,7 @@ type CertValidateConfig struct {
 	CheckTime       time.Time // 验证时间点(零值表示当前时间)
 	DNSName         string    // 验证 DNS 名称
 	Usage           CertUsage // 验证用途
+	CRLData         string    // CRL PEM 数据(可选, 为空则跳过吊销检查)
 }
 
 // CertChainConfig 证书链配置.

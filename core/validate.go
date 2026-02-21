@@ -13,6 +13,7 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"math/big"
 	"slices"
 	"time"
 )
@@ -51,6 +52,13 @@ func ValidateCert(cfg *CertValidateConfig) error {
 	if cfg.DNSName != "" {
 		if err := cert.VerifyHostname(cfg.DNSName); err != nil {
 			return fmt.Errorf("hostname verification failed: %w", err)
+		}
+	}
+
+	// 验证 CRL 吊销状态.
+	if cfg.CRLData != "" {
+		if err := validateCertCRL(cert, cfg.CRLData); err != nil {
+			return err
 		}
 	}
 
@@ -104,6 +112,62 @@ func validateCertUsage(cert *x509.Certificate, usage CertUsage) error {
 	}
 
 	return nil
+}
+
+// validateCertCRL 从 CRL（证书吊销列表）检查证书是否已被吊销.
+func validateCertCRL(cert *x509.Certificate, crlPEM string) error {
+	revokedSerials, err := parseCRLRevokedSerials(crlPEM)
+	if err != nil {
+		return err
+	}
+
+	for _, serial := range revokedSerials {
+		if cert.SerialNumber.Cmp(serial) == 0 {
+			return fmt.Errorf("certificate serial number %s has been revoked", cert.SerialNumber.String())
+		}
+	}
+
+	return nil
+}
+
+// parseCRLRevokedSerials 解析 CRL PEM 数据, 返回所有被吊销的证书序列号.
+// 支持多个 CRL 块, 使用 x509.ParseRevocationList 解析, 并检查 CRL 是否已过期.
+func parseCRLRevokedSerials(crlPEM string) ([]*big.Int, error) {
+	var revokedSerials []*big.Int
+	rest := []byte(crlPEM)
+
+	for {
+		var block *pem.Block
+		block, rest = pem.Decode(rest)
+		if block == nil {
+			break
+		}
+
+		if block.Type != string(PEMBlockCRL) {
+			continue
+		}
+
+		crl, err := x509.ParseRevocationList(block.Bytes)
+		if err != nil {
+			return nil, fmt.Errorf("parse CRL: %w", err)
+		}
+
+		// 检查 CRL 是否已过期.
+		if !crl.NextUpdate.IsZero() && time.Now().After(crl.NextUpdate) {
+			return nil, fmt.Errorf("CRL has expired: NextUpdate %s", crl.NextUpdate.Format(time.RFC3339))
+		}
+
+		for _, entry := range crl.RevokedCertificateEntries {
+			revokedSerials = append(revokedSerials, entry.SerialNumber)
+		}
+	}
+
+	if len(revokedSerials) == 0 {
+		// 没有解析到任何 CRL 块时不视为错误, 等同于无吊销.
+		return nil, nil
+	}
+
+	return revokedSerials, nil
 }
 
 // validateCertChain 验证证书链.
