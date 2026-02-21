@@ -15,6 +15,7 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"math/big"
+	"strconv"
 
 	"github.com/jiaopengzi/cert/utils"
 )
@@ -145,13 +146,17 @@ func (e *ECDSACryptoOperator) HybridEncrypt(plaintext []byte) ([]byte, []byte, e
 
 	// 获取临时公钥字节.
 	ephemeralPubBytes := ephemeralKey.PublicKey().Bytes()
+	if len(ephemeralPubBytes) > 99999 {
+		return nil, nil, fmt.Errorf("ephemeral public key too large: %d", len(ephemeralPubBytes))
+	}
 
-	// 组合加密包: [临时公钥长度(1字节)][临时公钥][nonce][加密数据].
-	result := make([]byte, 1+len(ephemeralPubBytes)+len(nonce)+len(ciphertext))
-	result[0] = byte(len(ephemeralPubBytes))
-	copy(result[1:], ephemeralPubBytes)
-	copy(result[1+len(ephemeralPubBytes):], nonce)
-	copy(result[1+len(ephemeralPubBytes)+len(nonce):], ciphertext)
+	// 组合加密包: [临时公钥长度(5字节十进制)][临时公钥][nonce][加密数据].
+	pubKeyLenHeader := fmt.Sprintf("%05d", len(ephemeralPubBytes))
+	result := make([]byte, 5+len(ephemeralPubBytes)+len(nonce)+len(ciphertext))
+	copy(result[:5], pubKeyLenHeader)
+	copy(result[5:], ephemeralPubBytes)
+	copy(result[5+len(ephemeralPubBytes):], nonce)
+	copy(result[5+len(ephemeralPubBytes)+len(nonce):], ciphertext)
 
 	return result, nonce, nil
 }
@@ -170,19 +175,22 @@ func (e *ECDSACryptoOperator) HybridDecrypt(encryptedPackage []byte) ([]byte, er
 	}
 
 	// 检查加密包长度.
-	if len(encryptedPackage) < 1 {
+	if len(encryptedPackage) < 5 {
 		return nil, ErrInvalidCiphertext
 	}
 
 	// 解析加密包.
-	pubKeyLen := int(encryptedPackage[0])
-	if len(encryptedPackage) < 1+pubKeyLen {
+	pubKeyLen, err := strconv.Atoi(string(encryptedPackage[:5]))
+	if err != nil || pubKeyLen < 0 {
+		return nil, ErrInvalidCiphertext
+	}
+	if len(encryptedPackage) < 5+pubKeyLen {
 		return nil, ErrInvalidCiphertext
 	}
 
 	// 解析临时公钥和剩余数据.
-	ephemeralPubBytes := encryptedPackage[1 : 1+pubKeyLen]
-	remaining := encryptedPackage[1+pubKeyLen:]
+	ephemeralPubBytes := encryptedPackage[5 : 5+pubKeyLen]
+	remaining := encryptedPackage[5+pubKeyLen:]
 
 	// 将 ECDSA 私钥转换为 ECDH 私钥.
 	ecdhCurve, err := ecdsaCurveToECDH(ecdsaKey.Curve.Params().Name)
@@ -246,28 +254,20 @@ func ecdsaCurveToECDH(curveName string) (ecdh.Curve, error) {
 
 // ecdsaPublicKeyToECDH 将 ECDSA 公钥转换为 ECDH 公钥.
 func ecdsaPublicKeyToECDH(pubKey *ecdsa.PublicKey, curve ecdh.Curve) (*ecdh.PublicKey, error) {
-	// ECDH 公钥使用未压缩格式: 0x04 || X || Y.
-	byteLen := (pubKey.Curve.Params().BitSize + 7) / 8
-	pubBytes := make([]byte, 1+2*byteLen)
-	pubBytes[0] = 0x04
-
-	xBytes := pubKey.X.Bytes()
-	yBytes := pubKey.Y.Bytes()
-
-	copy(pubBytes[1+byteLen-len(xBytes):1+byteLen], xBytes)
-	copy(pubBytes[1+2*byteLen-len(yBytes):1+2*byteLen], yBytes)
+	pubBytes, err := pubKey.Bytes()
+	if err != nil {
+		return nil, err
+	}
 
 	return curve.NewPublicKey(pubBytes)
 }
 
 // ecdsaPrivateKeyToECDH 将 ECDSA 私钥转换为 ECDH 私钥.
 func ecdsaPrivateKeyToECDH(privKey *ecdsa.PrivateKey, curve ecdh.Curve) (*ecdh.PrivateKey, error) {
-	// ECDH 私钥是固定长度的标量.
-	byteLen := (privKey.Curve.Params().BitSize + 7) / 8
-	privBytes := make([]byte, byteLen)
-
-	dBytes := privKey.D.Bytes()
-	copy(privBytes[byteLen-len(dBytes):], dBytes)
+	privBytes, err := privKey.Bytes()
+	if err != nil {
+		return nil, err
+	}
 
 	return curve.NewPrivateKey(privBytes)
 }

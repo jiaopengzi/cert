@@ -19,6 +19,8 @@ import (
 )
 
 // ValidateCert 验证证书的有效性.
+//
+// nolint:gocognit
 func ValidateCert(cfg *CertValidateConfig) error {
 	// 解析待验证证书.
 	certBlock, _ := pem.Decode([]byte(cfg.Cert))

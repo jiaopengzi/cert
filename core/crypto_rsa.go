@@ -15,6 +15,7 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"io"
+	"strconv"
 
 	"github.com/jiaopengzi/cert/utils"
 )
@@ -109,35 +110,24 @@ func (r *RSACryptoOperator) HybridEncrypt(plaintext []byte) ([]byte, []byte, err
 	if err != nil {
 		return nil, nil, fmt.Errorf("encrypt aes key failed: %w", err)
 	}
+	if len(encryptedKey) > 99999 {
+		return nil, nil, fmt.Errorf("encrypted key too large: %d", len(encryptedKey))
+	}
 
-	// 组合加密包: [加密密钥长度(2字节)][加密密钥][nonce][加密数据].
-	result := make([]byte, 2+len(encryptedKey)+len(nonce)+len(ciphertext))
-	result[0] = byte(len(encryptedKey) >> 8)
-	result[1] = byte(len(encryptedKey))
-	copy(result[2:], encryptedKey)
-	copy(result[2+len(encryptedKey):], nonce)
-	copy(result[2+len(encryptedKey)+len(nonce):], ciphertext)
+	// 组合加密包: [加密密钥长度(5字节十进制)][加密密钥][nonce][加密数据].
+	keyLenHeader := fmt.Sprintf("%05d", len(encryptedKey))
+	result := make([]byte, 5+len(encryptedKey)+len(nonce)+len(ciphertext))
+	copy(result[:5], keyLenHeader)
+	copy(result[5:], encryptedKey)
+	copy(result[5+len(encryptedKey):], nonce)
+	copy(result[5+len(encryptedKey)+len(nonce):], ciphertext)
 
 	return result, nonce, nil
 }
 
 // HybridDecrypt 混合解密.
 func (r *RSACryptoOperator) HybridDecrypt(encryptedPackage []byte) ([]byte, error) {
-	// 检查加密包长度.
-	if len(encryptedPackage) < 2 {
-		return nil, ErrInvalidCiphertext
-	}
-
-	// 解析加密包.
-	keyLen := int(encryptedPackage[0])<<8 | int(encryptedPackage[1])
-	if len(encryptedPackage) < 2+keyLen {
-		return nil, ErrInvalidCiphertext
-	}
-
-	encryptedKey := encryptedPackage[2 : 2+keyLen]
-	remaining := encryptedPackage[2+keyLen:]
-
-	// 使用 RSA-OAEP 解密 AES 密钥.
+	// 使用 RSA-OAEP 解密 AES 密钥前先检查私钥.
 	if !r.cert.HasPrivateKey() {
 		return nil, ErrNoPrivateKey
 	}
@@ -146,6 +136,23 @@ func (r *RSACryptoOperator) HybridDecrypt(encryptedPackage []byte) ([]byte, erro
 	if !ok {
 		return nil, ErrInvalidKeyType
 	}
+
+	// 检查加密包长度.
+	if len(encryptedPackage) < 5 {
+		return nil, ErrInvalidCiphertext
+	}
+
+	// 解析加密包.
+	keyLen, err := strconv.Atoi(string(encryptedPackage[:5]))
+	if err != nil || keyLen < 0 {
+		return nil, ErrInvalidCiphertext
+	}
+	if len(encryptedPackage) < 5+keyLen {
+		return nil, ErrInvalidCiphertext
+	}
+
+	encryptedKey := encryptedPackage[5 : 5+keyLen]
+	remaining := encryptedPackage[5+keyLen:]
 
 	aesKey, err := rsa.DecryptOAEP(sha256.New(), rand.Reader, rsaKey, encryptedKey, nil)
 	if err != nil {
