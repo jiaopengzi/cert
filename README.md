@@ -1,6 +1,6 @@
 # Cert - 简单的证书工具
 
-[![Go Version](https://img.shields.io/badge/Go-1.25.6+-blue.svg)](https://golang.org)
+[![Go Version](https://img.shields.io/badge/Go-1.26.0+-blue.svg)](https://golang.org)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 一个简单易用的证书管理工具，支持 CLI 命令行和 Web 界面两种操作方式。

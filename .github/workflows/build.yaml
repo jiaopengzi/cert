@@ -43,8 +43,8 @@ jobs:
         run: |
           GOV=$(grep '^go ' go.mod | awk '{print $2}' || true)
           if [ -z "$GOV" ]; then
-            echo "No go version found in go.mod; defaulting to 1.25.6"
-            GOV=1.25.6
+            echo "No go version found in go.mod; defaulting to 1.25.7"
+            GOV=1.26.0
           fi
           echo "GOV=$GOV" >> $GITHUB_ENV
 
