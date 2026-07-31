@@ -9,15 +9,14 @@
 package core
 
 import (
+	"crypto/ecdh"
 	"crypto/ed25519"
 	"crypto/rand"
 	"crypto/sha256"
 	"crypto/sha512"
 	"fmt"
-	"io"
 
 	"filippo.io/edwards25519"
-	"golang.org/x/crypto/curve25519"
 
 	"github.com/jiaopengzi/cert/utils"
 )
@@ -93,20 +92,20 @@ func (e *Ed25519CryptoOperator) HybridEncrypt(plaintext []byte) ([]byte, []byte,
 		return nil, nil, fmt.Errorf("convert ed25519 to x25519 public key failed: %w", err)
 	}
 
-	// 生成临时 X25519 密钥对.
-	var ephemeralPrivKey [32]byte
-	if _, randErr := io.ReadFull(rand.Reader, ephemeralPrivKey[:]); randErr != nil {
-		return nil, nil, fmt.Errorf("generate ephemeral key failed: %w", randErr)
+	x25519Curve := ecdh.X25519()
+	recipientECDHPubKey, err := x25519Curve.NewPublicKey(recipientX25519PubKey)
+	if err != nil {
+		return nil, nil, fmt.Errorf("parse recipient x25519 public key failed: %w", err)
 	}
 
-	// 计算临时公钥.
-	ephemeralPubKey, err := curve25519.X25519(ephemeralPrivKey[:], curve25519.Basepoint)
+	// 生成临时 X25519 密钥对.
+	ephemeralKey, err := x25519Curve.GenerateKey(rand.Reader)
 	if err != nil {
-		return nil, nil, fmt.Errorf("compute ephemeral public key failed: %w", err)
+		return nil, nil, fmt.Errorf("generate ephemeral key failed: %w", err)
 	}
 
 	// 执行 ECDH 密钥交换, 得到共享密钥.
-	sharedSecret, err := curve25519.X25519(ephemeralPrivKey[:], recipientX25519PubKey)
+	sharedSecret, err := ephemeralKey.ECDH(recipientECDHPubKey)
 	if err != nil {
 		return nil, nil, fmt.Errorf("ecdh key exchange failed: %w", err)
 	}
@@ -124,6 +123,8 @@ func (e *Ed25519CryptoOperator) HybridEncrypt(plaintext []byte) ([]byte, []byte,
 	if plaintext == nil {
 		return nil, nonce, nil
 	}
+
+	ephemeralPubKey := ephemeralKey.PublicKey().Bytes()
 
 	// 组合加密包: [临时公钥(32字节)][nonce][加密数据].
 	result := make([]byte, 32+len(nonce)+len(ciphertext))
@@ -158,12 +159,23 @@ func (e *Ed25519CryptoOperator) HybridDecrypt(encryptedPackage []byte) ([]byte, 
 		return nil, fmt.Errorf("convert ed25519 to x25519 private key failed: %w", err)
 	}
 
+	x25519Curve := ecdh.X25519()
+	recipientECDHPrivKey, err := x25519Curve.NewPrivateKey(x25519PrivKey)
+	if err != nil {
+		return nil, fmt.Errorf("parse recipient x25519 private key failed: %w", err)
+	}
+
 	// 提取临时公钥和剩余数据.
-	ephemeralPubKey := encryptedPackage[:32]
+	ephemeralPubKeyBytes := encryptedPackage[:32]
 	remaining := encryptedPackage[32:]
 
+	ephemeralPubKey, err := x25519Curve.NewPublicKey(ephemeralPubKeyBytes)
+	if err != nil {
+		return nil, fmt.Errorf("parse ephemeral public key failed: %w", err)
+	}
+
 	// 执行 ECDH 密钥交换, 恢复共享密钥.
-	sharedSecret, err := curve25519.X25519(x25519PrivKey, ephemeralPubKey)
+	sharedSecret, err := recipientECDHPrivKey.ECDH(ephemeralPubKey)
 	if err != nil {
 		return nil, fmt.Errorf("ecdh key exchange failed: %w", err)
 	}

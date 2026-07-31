@@ -50,6 +50,7 @@
         "golangci",
         "gopls",
         "GOPROXY",
+        "gosec",
         "Grotesk",
         "ipaddrs",
         "isca",
