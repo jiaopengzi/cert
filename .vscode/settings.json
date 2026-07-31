@@ -20,7 +20,15 @@
         "terminal.ansiYellow": "#FBA922",
         "activityBar.background": "#5B0E23",
         "titleBar.activeBackground": "#7F1430",
-        "titleBar.activeForeground": "#FEFBFC"
+        "titleBar.activeForeground": "#FEFBFC",
+        "titleBar.inactiveBackground": "#5B0E23",
+        "titleBar.inactiveForeground": "#FEFBFC",
+        "statusBar.background": "#5B0E23",
+        "statusBar.foreground": "#FEFBFC",
+        "statusBar.debuggingBackground": "#5B0E23",
+        "statusBar.debuggingForeground": "#FEFBFC",
+        "statusBar.noFolderBackground": "#5B0E23",
+        "statusBar.noFolderForeground": "#FEFBFC"
     },
     "cSpell.words": [
         "addrs",
