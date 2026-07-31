@@ -33,13 +33,13 @@ func ValidateChainCmd() *cli.Command {
 func validateChainFlags() []cli.Flag {
 	return []cli.Flag{
 		&cli.StringFlag{
-			Name:     "ca-cert",
+			Name:     flagNameCACert,
 			Aliases:  []string{"ca"},
-			Usage:    "CA certificate file path (CA 证书文件路径)",
+			Usage:    flagUsageCACertPath,
 			Required: true,
 		},
 		&cli.StringFlag{
-			Name:     "cert",
+			Name:     flagNameCert,
 			Aliases:  []string{"c"},
 			Usage:    "Certificate to validate (待验证的证书文件路径)",
 			Required: true,
@@ -54,7 +54,7 @@ func validateChainFlags() []cli.Flag {
 			Usage: "DNS name to verify (要验证的 DNS 名称)",
 		},
 		&cli.StringFlag{
-			Name:  "usage",
+			Name:  flagNameUsage,
 			Value: "",
 			Usage: "Certificate usage to verify: server, client, codesigning, email (要验证的证书用途)",
 		},
@@ -63,12 +63,12 @@ func validateChainFlags() []cli.Flag {
 
 // validateChainAction 执行证书链验证
 func validateChainAction(ctx context.Context, cmd *cli.Command) error {
-	caCert, err := os.ReadFile(cmd.String("ca-cert"))
+	caCert, err := os.ReadFile(cmd.String(flagNameCACert))
 	if err != nil {
 		return fmt.Errorf("read CA certificate failed (读取 CA 证书失败: %w)", err)
 	}
 
-	certPEM, err := os.ReadFile(cmd.String("cert"))
+	certPEM, err := os.ReadFile(cmd.String(flagNameCert))
 	if err != nil {
 		return fmt.Errorf("read certificate failed (读取证书失败: %w)", err)
 	}
@@ -78,7 +78,7 @@ func validateChainAction(ctx context.Context, cmd *cli.Command) error {
 		return err
 	}
 
-	usage := getValidateUsage(cmd.String("usage"))
+	usage := getValidateUsage(cmd.String(flagNameUsage))
 
 	cfg := &core.CertValidateConfig{
 		Cert:            string(certPEM),

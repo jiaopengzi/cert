@@ -27,25 +27,25 @@ func EncryptCmd() *cli.Command {
 		Usage:   "Encrypt a string using certificate public key (使用证书公钥加密字符串)",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
-				Name:     "cert",
+				Name:     flagNameCert,
 				Aliases:  []string{"c"},
-				Usage:    "Certificate file path (证书文件路径)",
+				Usage:    flagUsageCertPath,
 				Required: true,
 			},
 			&cli.StringFlag{
-				Name:     "data",
+				Name:     flagNameData,
 				Aliases:  []string{"d"},
 				Usage:    "Plaintext string to encrypt (待加密的明文字符串)",
 				Required: true,
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			certPEM, err := os.ReadFile(cmd.String("cert"))
+			certPEM, err := os.ReadFile(cmd.String(flagNameCert))
 			if err != nil {
 				return fmt.Errorf("read certificate failed (读取证书失败: %w)", err)
 			}
 
-			plaintext := []byte(cmd.String("data"))
+			plaintext := []byte(cmd.String(flagNameData))
 
 			ciphertext, _, err := core.EncryptWithCert(string(certPEM), plaintext)
 			if err != nil {

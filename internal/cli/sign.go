@@ -55,7 +55,7 @@ func SignCmd() *cli.Command {
 				Required: true,
 			},
 			&cli.StringFlag{
-				Name:    "data",
+				Name:    flagNameData,
 				Aliases: []string{"d"},
 				Usage:   "Data string to sign (待签名的字符串)",
 			},
@@ -66,7 +66,7 @@ func SignCmd() *cli.Command {
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			data, err := readInputData(cmd.String("data"), cmd.String("file"))
+			data, err := readInputData(cmd.String(flagNameData), cmd.String("file"))
 			if err != nil {
 				return err
 			}

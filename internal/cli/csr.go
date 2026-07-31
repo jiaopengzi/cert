@@ -28,43 +28,43 @@ func genCSRFlags() []cli.Flag {
 			Usage:   "Output path for CSR (CSR 输出路径)",
 		},
 		&cli.StringFlag{
-			Name:    "key-out",
+			Name:    flagNameKeyOut,
 			Aliases: []string{"k"},
 			Value:   "request_key.pem",
-			Usage:   "Output path for private key (私钥输出路径)",
+			Usage:   flagUsagePrivateKeyOut,
 		},
 		&cli.StringFlag{
-			Name:    "algorithm",
+			Name:    flagNameAlgorithm,
 			Aliases: []string{"a"},
-			Value:   "RSA",
-			Usage:   "Key algorithm: RSA, ECDSA, Ed25519 (密钥算法)",
+			Value:   defaultAlgorithmRSA,
+			Usage:   flagUsageKeyAlgorithm,
 		},
 		&cli.IntFlag{
-			Name:    "rsa-bits",
+			Name:    flagNameRSAKeyBits,
 			Aliases: []string{"b"},
 			Value:   2048,
-			Usage:   "RSA key bits (2048 or 4096) (RSA 密钥位数)",
+			Usage:   flagUsageRSAKeyBits,
 		},
 		&cli.StringFlag{
-			Name:    "ecdsa-curve",
+			Name:    flagNameECDSACurve,
 			Aliases: []string{"e"},
-			Value:   "P256",
-			Usage:   "ECDSA curve: P256, P384, P521 (ECDSA 曲线)",
+			Value:   defaultECDSACurveP256,
+			Usage:   flagUsageECDSACurve,
 		},
 		&cli.StringFlag{
 			Name:  "cn",
 			Value: "localhost",
-			Usage: "Common Name (通用名称)",
+			Usage: flagUsageCommonName,
 		},
 		&cli.StringFlag{
-			Name:  "org",
+			Name:  flagNameOrg,
 			Value: "",
-			Usage: "Organization (组织)",
+			Usage: flagUsageOrganization,
 		},
 		&cli.StringFlag{
-			Name:  "country",
+			Name:  flagNameCountry,
 			Value: "",
-			Usage: "Country (国家)",
+			Usage: flagUsageCountry,
 		},
 		&cli.StringFlag{
 			Name:  "state",
@@ -94,14 +94,14 @@ func genCSRAction(_ context.Context, cmd *cli.Command) error {
 	sanConfig := core.ParseSANFromStr(cmd.String("dns-names"), cmd.String("ip-addrs"))
 
 	cfg := &core.CSRConfig{
-		KeyAlgorithm: core.KeyAlgorithm(cmd.String("algorithm")),
-		RSAKeyBits:   cmd.Int("rsa-bits"),
-		ECDSACurve:   core.ECDSACurve(cmd.String("ecdsa-curve")),
+		KeyAlgorithm: core.KeyAlgorithm(cmd.String(flagNameAlgorithm)),
+		RSAKeyBits:   cmd.Int(flagNameRSAKeyBits),
+		ECDSACurve:   core.ECDSACurve(cmd.String(flagNameECDSACurve)),
 		SAN:          sanConfig,
 		Subject: core.Subject{
 			CommonName:   cmd.String("cn"),
-			Organization: cmd.String("org"),
-			Country:      cmd.String("country"),
+			Organization: cmd.String(flagNameOrg),
+			Country:      cmd.String(flagNameCountry),
 			State:        cmd.String("state"),
 			Locality:     cmd.String("locality"),
 		},
@@ -112,7 +112,7 @@ func genCSRAction(_ context.Context, cmd *cli.Command) error {
 	}
 
 	csrOut := cmd.String("csr-out")
-	keyOut := cmd.String("key-out")
+	keyOut := cmd.String(flagNameKeyOut)
 
 	if err := os.WriteFile(csrOut, []byte(cfg.CSR), 0600); err != nil {
 		return fmt.Errorf("write CSR failed (写入 CSR 失败): %w", err)
@@ -133,15 +133,15 @@ func genCSRAction(_ context.Context, cmd *cli.Command) error {
 func signCSRFlags() []cli.Flag {
 	return []cli.Flag{
 		&cli.StringFlag{
-			Name:     "ca-cert",
+			Name:     flagNameCACert,
 			Aliases:  []string{"ca"},
-			Usage:    "CA certificate file path (CA 证书文件路径)",
+			Usage:    flagUsageCACertPath,
 			Required: true,
 		},
 		&cli.StringFlag{
-			Name:     "ca-key",
-			Aliases:  []string{"cakey"},
-			Usage:    "CA private key file path (CA 私钥文件路径)",
+			Name:     flagNameCAKey,
+			Aliases:  []string{flagAliasCAKey},
+			Usage:    flagUsageCAKeyPath,
 			Required: true,
 		},
 		&cli.StringFlag{
@@ -151,20 +151,20 @@ func signCSRFlags() []cli.Flag {
 			Required: true,
 		},
 		&cli.StringFlag{
-			Name:    "cert-out",
+			Name:    flagNameCertOut,
 			Aliases: []string{"o"},
 			Value:   "signed.pem",
 			Usage:   "Output path for signed certificate (签发证书输出路径)",
 		},
 		&cli.IntFlag{
-			Name:    "days",
+			Name:    flagNameDays,
 			Aliases: []string{"d"},
 			Value:   365,
-			Usage:   "Certificate validity in days (证书有效期(天))",
+			Usage:   flagUsageCertDays,
 		},
 		&cli.StringFlag{
-			Name:  "usage",
-			Value: "server",
+			Name:  flagNameUsage,
+			Value: defaultUsageServer,
 			Usage: "Certificate usage: server, client, codesigning, email (证书用途)",
 		},
 		&cli.BoolFlag{
@@ -177,17 +177,17 @@ func signCSRFlags() []cli.Flag {
 
 // signCSRAction 签发 CSR 的公共 action 函数
 func signCSRAction(_ context.Context, cmd *cli.Command) error {
-	days := cmd.Int("days")
+	days := cmd.Int(flagNameDays)
 	if days <= 0 {
 		return fmt.Errorf("days must be greater than 0 (有效期必须大于 0)")
 	}
 
-	caCert, err := os.ReadFile(cmd.String("ca-cert"))
+	caCert, err := os.ReadFile(cmd.String(flagNameCACert))
 	if err != nil {
 		return fmt.Errorf("read CA certificate failed (读取 CA 证书失败): %w", err)
 	}
 
-	caKey, err := os.ReadFile(cmd.String("ca-key"))
+	caKey, err := os.ReadFile(cmd.String(flagNameCAKey))
 	if err != nil {
 		return fmt.Errorf("read CA private key failed (读取 CA 私钥失败): %w", err)
 	}
@@ -197,13 +197,13 @@ func signCSRAction(_ context.Context, cmd *cli.Command) error {
 		return fmt.Errorf("read CSR failed (读取 CSR 失败): %w", err)
 	}
 
-	usage := parseUsage(cmd.String("usage"))
+	usage := parseUsage(cmd.String(flagNameUsage))
 
 	cfg := &core.CSRSignConfig{
 		CACert:    string(caCert),
 		CAKey:     string(caKey),
 		CSR:       string(csrPEM),
-		DaysValid: cmd.Int("days"),
+		DaysValid: cmd.Int(flagNameDays),
 		Usage:     usage,
 		IsCA:      cmd.Bool("is-ca"),
 	}
@@ -212,7 +212,7 @@ func signCSRAction(_ context.Context, cmd *cli.Command) error {
 		return fmt.Errorf("sign CSR failed (签发 CSR 失败): %w", err)
 	}
 
-	certOut := cmd.String("cert-out")
+	certOut := cmd.String(flagNameCertOut)
 
 	if err := os.WriteFile(certOut, []byte(cfg.Cert), 0600); err != nil {
 		return fmt.Errorf("write certificate failed (写入证书失败): %w", err)

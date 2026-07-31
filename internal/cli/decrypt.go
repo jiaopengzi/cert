@@ -27,9 +27,9 @@ func DecryptCmd() *cli.Command {
 		Usage:   "Decrypt a string using certificate private key (使用证书私钥解密字符串)",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
-				Name:     "cert",
+				Name:     flagNameCert,
 				Aliases:  []string{"c"},
-				Usage:    "Certificate file path (证书文件路径)",
+				Usage:    flagUsageCertPath,
 				Required: true,
 			},
 			&cli.StringFlag{
@@ -39,7 +39,7 @@ func DecryptCmd() *cli.Command {
 				Required: true,
 			},
 			&cli.StringFlag{
-				Name:     "data",
+				Name:     flagNameData,
 				Aliases:  []string{"d"},
 				Usage:    "Encrypted data (Base64 encoded) (加密数据 (Base64 编码))",
 				Required: true,
@@ -52,7 +52,7 @@ func DecryptCmd() *cli.Command {
 			}
 
 			// 解码 Base64 密文
-			ciphertext, err := base64.StdEncoding.DecodeString(cmd.String("data"))
+			ciphertext, err := base64.StdEncoding.DecodeString(cmd.String(flagNameData))
 			if err != nil {
 				return fmt.Errorf("decode ciphertext failed (解码密文失败: %w)", err)
 			}

@@ -20,9 +20,15 @@ import (
 
 // 默认值常量
 const (
-	defaultAlgorithm  = "RSA"
-	defaultECDSACurve = "P256"
-	defaultUsage      = "server"
+	defaultAlgorithm    = "RSA"
+	defaultECDSACurve   = "P256"
+	defaultUsage        = "server"
+	errMethodNotAllowed = "Method not allowed (方法不允许)"
+	responseKeyCert     = "cert"
+	responseKeyKey      = "key"
+	responseKeyValid    = "valid"
+	responseKeyReason   = "reason"
+	responseKeySerial   = "serialNumber"
 )
 
 // Response 通用响应结构
@@ -73,7 +79,7 @@ func GenRootCAHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		writeJSON(w, http.StatusMethodNotAllowed, Response{
 			Success: false,
-			Error:   "Method not allowed (方法不允许)",
+			Error:   errMethodNotAllowed,
 		})
 
 		return
@@ -143,8 +149,8 @@ func GenRootCAHandler(w http.ResponseWriter, r *http.Request) {
 		Success: true,
 		Message: "Root CA generated successfully (根证书生成成功)",
 		Data: map[string]string{
-			"cert": cfg.Cert,
-			"key":  cfg.Key,
+			responseKeyCert: cfg.Cert,
+			responseKeyKey:  cfg.Key,
 		},
 	})
 }
@@ -171,7 +177,7 @@ func SignCertHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		writeJSON(w, http.StatusMethodNotAllowed, Response{
 			Success: false,
-			Error:   "Method not allowed (方法不允许)",
+			Error:   errMethodNotAllowed,
 		})
 
 		return
@@ -246,8 +252,8 @@ func SignCertHandler(w http.ResponseWriter, r *http.Request) {
 		Success: true,
 		Message: "Certificate signed successfully (证书签发成功)",
 		Data: map[string]string{
-			"cert": cfg.Cert,
-			"key":  cfg.Key,
+			responseKeyCert: cfg.Cert,
+			responseKeyKey:  cfg.Key,
 		},
 	})
 }
@@ -263,7 +269,7 @@ func SignHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		writeJSON(w, http.StatusMethodNotAllowed, Response{
 			Success: false,
-			Error:   "Method not allowed (方法不允许)",
+			Error:   errMethodNotAllowed,
 		})
 
 		return
@@ -312,7 +318,7 @@ func VerifyHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		writeJSON(w, http.StatusMethodNotAllowed, Response{
 			Success: false,
-			Error:   "Method not allowed (方法不允许)",
+			Error:   errMethodNotAllowed,
 		})
 
 		return
@@ -342,8 +348,8 @@ func VerifyHandler(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusOK, Response{
 			Success: true,
 			Data: map[string]interface{}{
-				"valid":  false,
-				"reason": err.Error(),
+				responseKeyValid:  false,
+				responseKeyReason: err.Error(),
 			},
 		})
 
@@ -354,7 +360,7 @@ func VerifyHandler(w http.ResponseWriter, r *http.Request) {
 		Success: true,
 		Message: "Signature verified successfully (签名验证成功)",
 		Data: map[string]interface{}{
-			"valid": true,
+			responseKeyValid: true,
 		},
 	})
 }
@@ -370,7 +376,7 @@ func EncryptHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		writeJSON(w, http.StatusMethodNotAllowed, Response{
 			Success: false,
-			Error:   "Method not allowed (方法不允许)",
+			Error:   errMethodNotAllowed,
 		})
 
 		return
@@ -418,7 +424,7 @@ func DecryptHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		writeJSON(w, http.StatusMethodNotAllowed, Response{
 			Success: false,
-			Error:   "Method not allowed (方法不允许)",
+			Error:   errMethodNotAllowed,
 		})
 
 		return
@@ -477,7 +483,7 @@ func ValidateChainHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		writeJSON(w, http.StatusMethodNotAllowed, Response{
 			Success: false,
-			Error:   "Method not allowed (方法不允许)",
+			Error:   errMethodNotAllowed,
 		})
 
 		return
@@ -510,8 +516,8 @@ func ValidateChainHandler(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusOK, Response{
 			Success: true,
 			Data: map[string]interface{}{
-				"valid":  false,
-				"reason": err.Error(),
+				responseKeyValid:  false,
+				responseKeyReason: err.Error(),
 			},
 		})
 
@@ -522,7 +528,7 @@ func ValidateChainHandler(w http.ResponseWriter, r *http.Request) {
 		Success: true,
 		Message: "Certificate chain validated successfully (证书链验证成功)",
 		Data: map[string]interface{}{
-			"valid": true,
+			responseKeyValid: true,
 		},
 	})
 }
@@ -552,7 +558,7 @@ func CertInfoHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		writeJSON(w, http.StatusMethodNotAllowed, Response{
 			Success: false,
-			Error:   "Method not allowed (方法不允许)",
+			Error:   errMethodNotAllowed,
 		})
 
 		return
@@ -582,16 +588,16 @@ func CertInfoHandler(w http.ResponseWriter, r *http.Request) {
 		Success: true,
 		Message: "Certificate info retrieved successfully (证书信息获取成功)",
 		Data: map[string]interface{}{
-			"serialNumber": info.SerialNumber,
-			"subject":      info.Subject,
-			"issuer":       info.Issuer,
-			"notBefore":    info.NotBefore.Format("2006-01-02 15:04:05"),
-			"notAfter":     info.NotAfter.Format("2006-01-02 15:04:05"),
-			"isCA":         info.IsCA,
-			"keyAlgorithm": info.KeyAlgorithm,
-			"dnsNames":     info.DNSNames,
-			"ipAddresses":  info.IPAddresses,
-			"extKeyUsages": info.ExtKeyUsages,
+			responseKeySerial: info.SerialNumber,
+			"subject":         info.Subject,
+			"issuer":          info.Issuer,
+			"notBefore":       info.NotBefore.Format("2006-01-02 15:04:05"),
+			"notAfter":        info.NotAfter.Format("2006-01-02 15:04:05"),
+			"isCA":            info.IsCA,
+			"keyAlgorithm":    info.KeyAlgorithm,
+			"dnsNames":        info.DNSNames,
+			"ipAddresses":     info.IPAddresses,
+			"extKeyUsages":    info.ExtKeyUsages,
 		},
 	})
 }
@@ -615,7 +621,7 @@ func GenCSRHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		writeJSON(w, http.StatusMethodNotAllowed, Response{
 			Success: false,
-			Error:   "Method not allowed (方法不允许)",
+			Error:   errMethodNotAllowed,
 		})
 
 		return
@@ -677,8 +683,8 @@ func GenCSRHandler(w http.ResponseWriter, r *http.Request) {
 		Success: true,
 		Message: "CSR generated successfully (CSR 生成成功)",
 		Data: map[string]string{
-			"csr": cfg.CSR,
-			"key": cfg.Key,
+			"csr":          cfg.CSR,
+			responseKeyKey: cfg.Key,
 		},
 	})
 }
@@ -698,7 +704,7 @@ func SignCSRHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		writeJSON(w, http.StatusMethodNotAllowed, Response{
 			Success: false,
-			Error:   "Method not allowed (方法不允许)",
+			Error:   errMethodNotAllowed,
 		})
 
 		return
@@ -747,7 +753,7 @@ func SignCSRHandler(w http.ResponseWriter, r *http.Request) {
 		Success: true,
 		Message: "CSR signed successfully (CSR 签发成功)",
 		Data: map[string]string{
-			"cert": cfg.Cert,
+			responseKeyCert: cfg.Cert,
 		},
 	})
 }
@@ -768,7 +774,7 @@ func GenCRLHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		writeJSON(w, http.StatusMethodNotAllowed, Response{
 			Success: false,
-			Error:   "Method not allowed (方法不允许)",
+			Error:   errMethodNotAllowed,
 		})
 
 		return
@@ -838,7 +844,7 @@ func ViewCRLHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		writeJSON(w, http.StatusMethodNotAllowed, Response{
 			Success: false,
-			Error:   "Method not allowed (方法不允许)",
+			Error:   errMethodNotAllowed,
 		})
 
 		return
@@ -868,9 +874,9 @@ func ViewCRLHandler(w http.ResponseWriter, r *http.Request) {
 	var certList []map[string]interface{}
 	for _, cert := range revokedCerts {
 		certList = append(certList, map[string]interface{}{
-			"serialNumber":   cert.SerialNumber.String(),
-			"revocationTime": cert.RevocationTime.Format("2006-01-02 15:04:05"),
-			"reason":         cert.Reason,
+			responseKeySerial: cert.SerialNumber.String(),
+			"revocationTime":  cert.RevocationTime.Format("2006-01-02 15:04:05"),
+			responseKeyReason: cert.Reason,
 		})
 	}
 
@@ -895,7 +901,7 @@ func CheckRevokedHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		writeJSON(w, http.StatusMethodNotAllowed, Response{
 			Success: false,
-			Error:   "Method not allowed (方法不允许)",
+			Error:   errMethodNotAllowed,
 		})
 
 		return
@@ -931,8 +937,8 @@ func CheckRevokedHandler(w http.ResponseWriter, r *http.Request) {
 		Success: true,
 		Message: "Revocation check completed (吊销状态检查完成)",
 		Data: map[string]interface{}{
-			"revoked":      revoked,
-			"serialNumber": serialNumber,
+			"revoked":         revoked,
+			responseKeySerial: serialNumber,
 		},
 	})
 }

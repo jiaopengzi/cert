@@ -27,13 +27,13 @@ func VerifyCmd() *cli.Command {
 		Usage:   "Verify a signature using certificate (使用证书验证签名)",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
-				Name:     "cert",
+				Name:     flagNameCert,
 				Aliases:  []string{"c"},
-				Usage:    "Certificate file path (证书文件路径)",
+				Usage:    flagUsageCertPath,
 				Required: true,
 			},
 			&cli.StringFlag{
-				Name:    "data",
+				Name:    flagNameData,
 				Aliases: []string{"d"},
 				Usage:   "Original data string (原始数据字符串)",
 			},
@@ -50,12 +50,12 @@ func VerifyCmd() *cli.Command {
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			data, err := readInputData(cmd.String("data"), cmd.String("file"))
+			data, err := readInputData(cmd.String(flagNameData), cmd.String("file"))
 			if err != nil {
 				return err
 			}
 
-			certPEM, err := os.ReadFile(cmd.String("cert"))
+			certPEM, err := os.ReadFile(cmd.String(flagNameCert))
 			if err != nil {
 				return fmt.Errorf("read certificate failed (读取证书失败): %w", err)
 			}

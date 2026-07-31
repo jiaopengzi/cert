@@ -27,14 +27,14 @@ func CertInfoCmd() *cli.Command {
 		Usage:   "View certificate information (查看证书信息)",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
-				Name:     "cert",
+				Name:     flagNameCert,
 				Aliases:  []string{"c"},
-				Usage:    "Certificate file path (证书文件路径)",
+				Usage:    flagUsageCertPath,
 				Required: true,
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			certPEM, err := os.ReadFile(cmd.String("cert"))
+			certPEM, err := os.ReadFile(cmd.String(flagNameCert))
 			if err != nil {
 				return fmt.Errorf("read certificate failed (读取证书失败): %w", err)
 			}

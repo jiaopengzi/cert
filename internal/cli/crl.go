@@ -22,15 +22,15 @@ import (
 func genCRLFlags() []cli.Flag {
 	return []cli.Flag{
 		&cli.StringFlag{
-			Name:     "ca-cert",
+			Name:     flagNameCACert,
 			Aliases:  []string{"ca"},
-			Usage:    "CA certificate file path (CA 证书文件路径)",
+			Usage:    flagUsageCACertPath,
 			Required: true,
 		},
 		&cli.StringFlag{
-			Name:     "ca-key",
-			Aliases:  []string{"cakey"},
-			Usage:    "CA private key file path (CA 私钥文件路径)",
+			Name:     flagNameCAKey,
+			Aliases:  []string{flagAliasCAKey},
+			Usage:    flagUsageCAKeyPath,
 			Required: true,
 		},
 		&cli.StringSliceFlag{
@@ -55,7 +55,7 @@ func genCRLFlags() []cli.Flag {
 			Usage:   "Remove entries older than N days from existing CRL (剔除吊销超过 N 天的历史记录, 0=不剔除)",
 		},
 		&cli.IntFlag{
-			Name:    "days",
+			Name:    flagNameDays,
 			Aliases: []string{"d"},
 			Value:   30,
 			Usage:   "CRL validity in days (CRL 有效期(天))",
@@ -71,7 +71,7 @@ func genCRLFlags() []cli.Flag {
 
 // genCRLAction 生成 CRL 的公共 action 函数
 func genCRLAction(_ context.Context, cmd *cli.Command) error {
-	days := cmd.Int("days")
+	days := cmd.Int(flagNameDays)
 	if days <= 0 {
 		return fmt.Errorf("days must be greater than 0 (CRL 有效期必须大于 0)")
 	}
@@ -81,12 +81,12 @@ func genCRLAction(_ context.Context, cmd *cli.Command) error {
 		return fmt.Errorf("prune-days must be greater than or equal to 0 (剔除天数必须大于等于 0)")
 	}
 
-	caCert, err := os.ReadFile(cmd.String("ca-cert"))
+	caCert, err := os.ReadFile(cmd.String(flagNameCACert))
 	if err != nil {
 		return fmt.Errorf("read CA certificate failed (读取 CA 证书失败): %w", err)
 	}
 
-	caKey, err := os.ReadFile(cmd.String("ca-key"))
+	caKey, err := os.ReadFile(cmd.String(flagNameCAKey))
 	if err != nil {
 		return fmt.Errorf("read CA private key failed (读取 CA 私钥失败): %w", err)
 	}
@@ -122,7 +122,7 @@ func genCRLAction(_ context.Context, cmd *cli.Command) error {
 		ExistingCRL:    existingCRL,
 		SkipExpired:    cmd.Bool("skip-expired"),
 		PruneAfterDays: cmd.Int("prune-days"),
-		DaysValid:      cmd.Int("days"),
+		DaysValid:      cmd.Int(flagNameDays),
 	}
 
 	if err := core.GenerateCRL(cfg); err != nil {
@@ -155,7 +155,7 @@ func genCRLAction(_ context.Context, cmd *cli.Command) error {
 func viewCRLFlags() []cli.Flag {
 	return []cli.Flag{
 		&cli.StringFlag{
-			Name:     "crl",
+			Name:     flagNameCRL,
 			Aliases:  []string{"c"},
 			Usage:    "CRL file path (CRL 文件路径)",
 			Required: true,
@@ -165,7 +165,7 @@ func viewCRLFlags() []cli.Flag {
 
 // viewCRLAction 查看 CRL 的公共 action 函数
 func viewCRLAction(_ context.Context, cmd *cli.Command) error {
-	crlPEM, err := os.ReadFile(cmd.String("crl"))
+	crlPEM, err := os.ReadFile(cmd.String(flagNameCRL))
 	if err != nil {
 		return fmt.Errorf("read CRL failed (读取 CRL 失败): %w", err)
 	}
@@ -197,13 +197,13 @@ func viewCRLAction(_ context.Context, cmd *cli.Command) error {
 func checkRevokedFlags() []cli.Flag {
 	return []cli.Flag{
 		&cli.StringFlag{
-			Name:     "cert",
+			Name:     flagNameCert,
 			Aliases:  []string{"c"},
-			Usage:    "Certificate file path (证书文件路径)",
+			Usage:    flagUsageCertPath,
 			Required: true,
 		},
 		&cli.StringFlag{
-			Name:     "crl",
+			Name:     flagNameCRL,
 			Usage:    "CRL file path (CRL 文件路径)",
 			Required: true,
 		},
@@ -212,12 +212,12 @@ func checkRevokedFlags() []cli.Flag {
 
 // checkRevokedAction 检查证书吊销状态的公共 action 函数
 func checkRevokedAction(_ context.Context, cmd *cli.Command) error {
-	certPEM, err := os.ReadFile(cmd.String("cert"))
+	certPEM, err := os.ReadFile(cmd.String(flagNameCert))
 	if err != nil {
 		return fmt.Errorf("read certificate failed (读取证书失败): %w", err)
 	}
 
-	crlPEM, err := os.ReadFile(cmd.String("crl"))
+	crlPEM, err := os.ReadFile(cmd.String(flagNameCRL))
 	if err != nil {
 		return fmt.Errorf("read CRL failed (读取 CRL 失败): %w", err)
 	}
@@ -278,7 +278,7 @@ func CheckRevokedCmd() *cli.Command {
 // CRLCmd 返回 CRL 命令组
 func CRLCmd() *cli.Command {
 	return &cli.Command{
-		Name:    "crl",
+		Name:    flagNameCRL,
 		Aliases: []string{},
 		Usage:   "CRL related commands (CRL 相关命令)",
 		Commands: []*cli.Command{
