@@ -5,6 +5,14 @@
 该格式基于 [Keep a Changelog](https://keepachangelog.com),
 本项目遵循 [语义化版本控制](https://semver.org/spec/v2.0.0.html)。
 
+<a name="v1.0.1"></a>
+
+## [v1.0.1] - 2026-07-31
+
+### 🐞 Fix
+
+- 从 x/crypto/curve25519 切到标准库 crypto/ecdh 并移除依赖
+
 <a name="v1.0.0"></a>
 
 ## [v1.0.0] - 2026-07-31
@@ -158,6 +166,7 @@
     - RESTful API 接口
     - 响应式 HTML 前端界面
 
+[v1.0.1]: https://github.com/jiaopengzi/cert/compare/v1.0.0...v1.0.1
 [v1.0.0]: https://github.com/jiaopengzi/cert/compare/v0.5.1...v1.0.0
 [v0.5.1]: https://github.com/jiaopengzi/cert/compare/v0.5.0...v0.5.1
 [v0.5.0]: https://github.com/jiaopengzi/cert/compare/v0.4.1...v0.5.0
