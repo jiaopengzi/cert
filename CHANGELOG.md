@@ -5,7 +5,11 @@
 该格式基于 [Keep a Changelog](https://keepachangelog.com),
 本项目遵循 [语义化版本控制](https://semver.org/spec/v2.0.0.html)。
 
-<a name="v1.0.2"></a>
+## [v1.0.3] - 2026-09-16
+
+### 📦 Build
+
+- 依赖升级
 
 ## [v1.0.2] - 2026-09-02
 
@@ -13,15 +17,11 @@
 
 - 依赖升级(包含action)
 
-<a name="v1.0.1"></a>
-
 ## [v1.0.1] - 2026-07-31
 
 ### 🐞 Fix
 
 - 从 x/crypto/curve25519 切到标准库 crypto/ecdh 并移除依赖
-
-<a name="v1.0.0"></a>
 
 ## [v1.0.0] - 2026-07-31
 
@@ -33,15 +33,11 @@
 
 - 依赖升级
 
-<a name="v0.5.1"></a>
-
 ## [v0.5.1] - 2026-02-21
 
 ### ⚙️ Ci
 
 - golangci-lint update
-
-<a name="v0.5.0"></a>
 
 ## [v0.5.0] - 2026-02-21
 
@@ -53,16 +49,12 @@
 
 - go 1.26.0
 
-<a name="v0.4.1"></a>
-
 ## [v0.4.1] - 2026-02-10
 
 ### ⚙️ Ci
 
 - lint
 - 本地包对齐
-
-<a name="v0.4.0"></a>
 
 ## [v0.4.0] - 2026-02-10
 
@@ -73,8 +65,6 @@
 ### 📦 Build
 
 - 统一 lint
-
-<a name="v0.3.1"></a>
 
 ## [v0.3.1] - 2026-01-30
 
@@ -87,15 +77,11 @@
 - 解密不需要证书，只需要私钥
 - 依赖版本更新的类型对齐
 
-<a name="v0.3.0"></a>
-
 ## [v0.3.0] - 2026-01-30
 
 ### ✨ Feat
 
 - 解除 go-utils 依赖， 自建 utils
-
-<a name="v0.2.1"></a>
 
 ## [v0.2.1] - 2026-01-29
 
@@ -107,8 +93,6 @@
 
 - update
 - 更新 readme
-
-<a name="v0.2.0"></a>
 
 ## [v0.2.0] - 2026-01-29
 
@@ -141,16 +125,12 @@
 - lint 规则
 - skill 优化
 
-<a name="v0.1.1"></a>
-
 ## [v0.1.1] - 2026-01-28
 
 ### 🐞 Fix
 
 - 数据类型统一
 - 对齐依赖
-
-<a name="v0.1.0"></a>
 
 ## [v0.1.0] - 2026-01-28
 
@@ -173,16 +153,3 @@
     - 支持所有 CLI 功能的 Web 版本
     - RESTful API 接口
     - 响应式 HTML 前端界面
-
-[v1.0.2]: https://github.com/jiaopengzi/cert/compare/v1.0.1...v1.0.2
-[v1.0.1]: https://github.com/jiaopengzi/cert/compare/v1.0.0...v1.0.1
-[v1.0.0]: https://github.com/jiaopengzi/cert/compare/v0.5.1...v1.0.0
-[v0.5.1]: https://github.com/jiaopengzi/cert/compare/v0.5.0...v0.5.1
-[v0.5.0]: https://github.com/jiaopengzi/cert/compare/v0.4.1...v0.5.0
-[v0.4.1]: https://github.com/jiaopengzi/cert/compare/v0.4.0...v0.4.1
-[v0.4.0]: https://github.com/jiaopengzi/cert/compare/v0.3.1...v0.4.0
-[v0.3.1]: https://github.com/jiaopengzi/cert/compare/v0.3.0...v0.3.1
-[v0.3.0]: https://github.com/jiaopengzi/cert/compare/v0.2.1...v0.3.0
-[v0.2.1]: https://github.com/jiaopengzi/cert/compare/v0.2.0...v0.2.1
-[v0.2.0]: https://github.com/jiaopengzi/cert/compare/v0.1.1...v0.2.0
-[v0.1.1]: https://github.com/jiaopengzi/cert/compare/v0.1.0...v0.1.1
