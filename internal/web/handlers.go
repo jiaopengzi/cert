@@ -33,10 +33,10 @@ const (
 
 // Response 通用响应结构
 type Response struct {
-	Success bool        `json:"success"`
-	Message string      `json:"message,omitempty"`
-	Data    interface{} `json:"data,omitempty"`
-	Error   string      `json:"error,omitempty"`
+	Success bool   `json:"success"`
+	Message string `json:"message,omitempty"`
+	Data    any    `json:"data,omitempty"`
+	Error   string `json:"error,omitempty"`
 }
 
 // writeJSON 写入 JSON 响应
@@ -347,7 +347,7 @@ func VerifyHandler(w http.ResponseWriter, r *http.Request) {
 	if err := core.VerifySignature(req.Cert, []byte(req.Data), signature); err != nil {
 		writeJSON(w, http.StatusOK, Response{
 			Success: true,
-			Data: map[string]interface{}{
+			Data: map[string]any{
 				responseKeyValid:  false,
 				responseKeyReason: err.Error(),
 			},
@@ -359,7 +359,7 @@ func VerifyHandler(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, Response{
 		Success: true,
 		Message: "Signature verified successfully (签名验证成功)",
-		Data: map[string]interface{}{
+		Data: map[string]any{
 			responseKeyValid: true,
 		},
 	})
@@ -515,7 +515,7 @@ func ValidateChainHandler(w http.ResponseWriter, r *http.Request) {
 	if err := core.ValidateCert(cfg); err != nil {
 		writeJSON(w, http.StatusOK, Response{
 			Success: true,
-			Data: map[string]interface{}{
+			Data: map[string]any{
 				responseKeyValid:  false,
 				responseKeyReason: err.Error(),
 			},
@@ -527,7 +527,7 @@ func ValidateChainHandler(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, Response{
 		Success: true,
 		Message: "Certificate chain validated successfully (证书链验证成功)",
-		Data: map[string]interface{}{
+		Data: map[string]any{
 			responseKeyValid: true,
 		},
 	})
@@ -587,7 +587,7 @@ func CertInfoHandler(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, Response{
 		Success: true,
 		Message: "Certificate info retrieved successfully (证书信息获取成功)",
-		Data: map[string]interface{}{
+		Data: map[string]any{
 			responseKeySerial: info.SerialNumber,
 			"subject":         info.Subject,
 			"issuer":          info.Issuer,
@@ -823,7 +823,7 @@ func GenCRLHandler(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, Response{
 		Success: true,
 		Message: "CRL generated successfully (CRL 生成成功)",
-		Data: map[string]interface{}{
+		Data: map[string]any{
 			"crl":            cfg.CRL,
 			"thisUpdate":     cfg.ThisUpdate.Format("2006-01-02 15:04:05"),
 			"nextUpdate":     cfg.NextUpdate.Format("2006-01-02 15:04:05"),
@@ -871,9 +871,9 @@ func ViewCRLHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 转换为 JSON 友好的格式
-	var certList []map[string]interface{}
+	var certList []map[string]any
 	for _, cert := range revokedCerts {
-		certList = append(certList, map[string]interface{}{
+		certList = append(certList, map[string]any{
 			responseKeySerial: cert.SerialNumber.String(),
 			"revocationTime":  cert.RevocationTime.Format("2006-01-02 15:04:05"),
 			responseKeyReason: cert.Reason,
@@ -883,7 +883,7 @@ func ViewCRLHandler(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, Response{
 		Success: true,
 		Message: "CRL parsed successfully (CRL 解析成功)",
-		Data: map[string]interface{}{
+		Data: map[string]any{
 			"revokedCount": len(revokedCerts),
 			"revokedCerts": certList,
 		},
@@ -936,7 +936,7 @@ func CheckRevokedHandler(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, Response{
 		Success: true,
 		Message: "Revocation check completed (吊销状态检查完成)",
-		Data: map[string]interface{}{
+		Data: map[string]any{
 			"revoked":         revoked,
 			responseKeySerial: serialNumber,
 		},
